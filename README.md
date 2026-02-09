@@ -27,3 +27,22 @@ npm run dev
 cd api
 mvn spring-boot:run
 ```
+
+## Phase 2: Postgres + seed + Policy Term APIs
+### Start Postgres (local dev)
+```bash
+docker compose up -d
+```
+
+### Run API with local profile (Postgres + deterministic seed)
+```bash
+cd api
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+### Verify endpoints
+```bash
+curl "http://localhost:8080/api/policy-terms?size=10"
+curl "http://localhost:8080/api/policy-terms?q=OH-000001&state=CA&status=ACTIVE&exp_from=2024-01-01&exp_to=2026-12-31"
+curl "http://localhost:8080/api/policy-terms/{termId}"
+```
