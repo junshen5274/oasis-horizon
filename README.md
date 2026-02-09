@@ -14,5 +14,16 @@ Prototype: next-generation, cloud-ready **Policy Inquiry/Search** for underwrite
 - /web  Next.js frontend
 - /api  Spring Boot backend
 
-## Run (placeholder)
-(Will be filled after skeleton apps are created.)
+## Run
+### Web (Next.js)
+```bash
+cd web
+npm install
+npm run dev
+```
+
+### API (Spring Boot)
+```bash
+cd api
+mvn spring-boot:run
+```
