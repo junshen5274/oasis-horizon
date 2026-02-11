@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/oasis_horizon
+    url: jdbc:postgresql://localhost:5433/oasis_horizon
     username: oasis
     password: oasis_password
     driver-class-name: org.postgresql.Driver
