@@ -62,8 +62,7 @@ public class PolicySeedRunner implements ApplicationRunner {
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
-    jdbcTemplate.execute("TRUNCATE TABLE policy_term");
-    jdbcTemplate.execute("TRUNCATE TABLE policy");
+    jdbcTemplate.execute("TRUNCATE TABLE policy_term, policy");
 
     Random random = new Random(RANDOM_SEED);
     int policyCount = 400 + random.nextInt(101);

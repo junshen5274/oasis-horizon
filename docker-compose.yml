@@ -2,14 +2,14 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16.2
     container_name: oasis-horizon-postgres
     environment:
       POSTGRES_USER: oasis
       POSTGRES_PASSWORD: oasis_password
       POSTGRES_DB: oasis_horizon
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - oasis_horizon_postgres_data:/var/lib/postgresql/data
 
