@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AssistantDrawer } from "@/components/assistant-drawer";
+import { AssistantDrawerToggle } from "@/components/assistant-drawer-toggle";
 import { fetchPolicyTerm } from "@/lib/api";
 
 export default async function PolicyTermDetailPage({
@@ -112,7 +112,7 @@ export default async function PolicyTermDetailPage({
         )}
       </section>
 
-      <AssistantDrawer />
+      <AssistantDrawerToggle />
     </main>
   );
 }
