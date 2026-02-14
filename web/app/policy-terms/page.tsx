@@ -107,18 +107,32 @@ function applyClientSideFilters(
 type PolicyTermsPagerProps = {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
+  firstPageHref: string;
   previousPageHref: string;
   nextPageHref: string;
+  lastPageHref: string;
 };
 
 function PolicyTermsPager({
   hasPreviousPage,
   hasNextPage,
+  firstPageHref,
   previousPageHref,
-  nextPageHref
+  nextPageHref,
+  lastPageHref
 }: PolicyTermsPagerProps) {
   return (
     <div className="flex items-center gap-2">
+      <Link
+        href={firstPageHref}
+        className={`rounded-md px-3 py-2 text-sm ${
+          hasPreviousPage
+            ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            : "pointer-events-none bg-slate-800 text-slate-500"
+        }`}
+      >
+        First
+      </Link>
       <Link
         href={previousPageHref}
         className={`rounded-md px-3 py-2 text-sm ${
@@ -138,6 +152,16 @@ function PolicyTermsPager({
         }`}
       >
         Next
+      </Link>
+      <Link
+        href={lastPageHref}
+        className={`rounded-md px-3 py-2 text-sm ${
+          hasNextPage
+            ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            : "pointer-events-none bg-slate-800 text-slate-500"
+        }`}
+      >
+        Last
       </Link>
     </div>
   );
@@ -199,8 +223,11 @@ export default async function PolicyTermsPage({
   const hasNextPage = (termPage.page + 1) * termPage.size < totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
   const nextPage = termPage.page + 1;
+  const lastPage = Math.max(termPage.totalPages - 1, 0);
+  const firstPageHref = buildPageHref(urlState, 0);
   const previousPageHref = buildPageHref(urlState, previousPage);
   const nextPageHref = buildPageHref(urlState, nextPage);
+  const lastPageHref = buildPageHref(urlState, lastPage);
 
   return (
     <main className="min-h-screen">
@@ -229,8 +256,10 @@ export default async function PolicyTermsPage({
             <PolicyTermsPager
               hasPreviousPage={hasPreviousPage}
               hasNextPage={hasNextPage}
+              firstPageHref={firstPageHref}
               previousPageHref={previousPageHref}
               nextPageHref={nextPageHref}
+              lastPageHref={lastPageHref}
             />
           </div>
 
@@ -291,8 +320,10 @@ export default async function PolicyTermsPage({
             <PolicyTermsPager
               hasPreviousPage={hasPreviousPage}
               hasNextPage={hasNextPage}
+              firstPageHref={firstPageHref}
               previousPageHref={previousPageHref}
               nextPageHref={nextPageHref}
+              lastPageHref={lastPageHref}
             />
           </div>
         </>
