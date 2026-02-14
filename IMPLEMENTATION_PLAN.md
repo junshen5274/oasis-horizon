@@ -28,10 +28,16 @@
 - Fetch search results + policy detail
 - Loading/error states
 
-## Phase 5: AI features
+## Phase 5: AI features + filter correctness + UX ✅ Completed
 - NL query → structured filters (validated)
 - Policy summary (grounded)
 - Simple audit log of prompts/responses
+- URL-driven filter correctness hotfix for `/policy-terms` (safe defaults for pagination)
+
+### Phase 5 Notes
+- `/policy-terms` filters are URL-driven and shareable/bookmarkable.
+- Pagination defaults are `page=0` and `size=20` when params are missing/invalid.
+- The web app never sends `size < 1` to the API.
 
 ## Phase 6: Demo polish
 - Demo dataset polish

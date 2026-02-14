@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AssistantDrawerToggle } from "@/components/assistant-drawer-toggle";
 import { fetchPolicyTerms, type PolicyTermSearchParams } from "@/lib/api";
+import { parseNonNegativeInt, parsePositiveInt } from "@/lib/query";
 import { buildQueryString } from "@/lib/query-string";
 import {
   PolicyTermsFilters,
@@ -14,10 +15,6 @@ function getParam(searchParams: SearchParams, key: string): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
-function parseNonNegativeInt(raw: string, fallback: number): number {
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
-}
 
 function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
   return {
@@ -27,7 +24,7 @@ function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
     exp_from: getParam(searchParams, "exp_from"),
     exp_to: getParam(searchParams, "exp_to"),
     page: parseNonNegativeInt(getParam(searchParams, "page"), 0),
-    size: parseNonNegativeInt(getParam(searchParams, "size"), 20),
+    size: parsePositiveInt(getParam(searchParams, "size"), 20),
     sort: getParam(searchParams, "sort") || "effective_to_date,asc"
   };
 }
