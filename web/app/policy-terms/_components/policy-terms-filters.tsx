@@ -1,6 +1,14 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState, useTransition } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { buildQueryString } from "@/lib/query-string";
 
@@ -19,6 +27,15 @@ type PolicyTermsFiltersProps = {
   params: PolicyTermsUrlState;
 };
 
+type FilterInputs = Pick<
+  PolicyTermsUrlState,
+  "q" | "state" | "status" | "exp_from" | "exp_to"
+>;
+
+function buildFiltersKey(filters: FilterInputs): string {
+  return `${filters.q}|${filters.state}|${filters.status}|${filters.exp_from}|${filters.exp_to}`;
+}
+
 export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,24 +47,58 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const [expFrom, setExpFrom] = useState(params.exp_from);
   const [expTo, setExpTo] = useState(params.exp_to);
 
-  const currentQuery = buildQueryString({
-    q: params.q,
-    state: params.state,
-    status: params.status,
-    exp_from: params.exp_from,
-    exp_to: params.exp_to,
-    page: params.page,
-    size: params.size,
-    sort: params.sort
-  });
+  const debounceTimerRef = useRef<number | null>(null);
+
+  const appliedFilters = useMemo<FilterInputs>(
+    () => ({
+      q: params.q,
+      state: params.state,
+      status: params.status,
+      exp_from: params.exp_from,
+      exp_to: params.exp_to
+    }),
+    [params.exp_from, params.exp_to, params.q, params.state, params.status]
+  );
+
+  const appliedFiltersKey = useMemo(
+    () => buildFiltersKey(appliedFilters),
+    [appliedFilters]
+  );
+
+  const draftFilters = useMemo<FilterInputs>(
+    () => ({
+      q,
+      state: stateFilter,
+      status,
+      exp_from: expFrom,
+      exp_to: expTo
+    }),
+    [expFrom, expTo, q, stateFilter, status]
+  );
+
+  const draftFiltersKey = useMemo(() => buildFiltersKey(draftFilters), [draftFilters]);
+
+  const lastAppliedFiltersKeyRef = useRef(appliedFiltersKey);
+
+  const currentQuery = useMemo(
+    () =>
+      buildQueryString({
+        ...appliedFilters,
+        page: params.page,
+        size: params.size,
+        sort: params.sort
+      }),
+    [appliedFilters, params.page, params.size, params.sort]
+  );
 
   useEffect(() => {
-    setQ(params.q);
-    setStateFilter(params.state);
-    setStatus(params.status);
-    setExpFrom(params.exp_from);
-    setExpTo(params.exp_to);
-  }, [params]);
+    lastAppliedFiltersKeyRef.current = appliedFiltersKey;
+    setQ(appliedFilters.q);
+    setStateFilter(appliedFilters.state);
+    setStatus(appliedFilters.status);
+    setExpFrom(appliedFilters.exp_from);
+    setExpTo(appliedFilters.exp_to);
+  }, [appliedFilters, appliedFiltersKey]);
 
   const activeFilters = [
     q ? { key: "q", label: `Keyword: ${q}` } : null,
@@ -57,111 +108,133 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     expTo ? { key: "exp_to", label: `Expires to: ${expTo}` } : null
   ].filter((chip): chip is { key: string; label: string } => Boolean(chip));
 
-  const navigate = useCallback((nextParams: PolicyTermsUrlState) => {
-    const query = buildQueryString({
-      q: nextParams.q,
-      state: nextParams.state,
-      status: nextParams.status,
-      exp_from: nextParams.exp_from,
-      exp_to: nextParams.exp_to,
-      page: nextParams.page,
-      size: nextParams.size,
-      sort: nextParams.sort
-    });
+  const applyFilters = useCallback(
+    (options: {
+      immediate: boolean;
+      resetPage: boolean;
+      values?: FilterInputs;
+      nextPage?: number;
+      forceRefreshIfUnchanged?: boolean;
+    }) => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
 
-    if (query === currentQuery) {
+      const nextValues: FilterInputs = options.values ?? draftFilters;
+
+      const runApply = () => {
+        const nextQuery = buildQueryString({
+          ...nextValues,
+          page:
+            options.nextPage ??
+            (options.resetPage ? 0 : params.page),
+          size: params.size,
+          sort: params.sort
+        });
+
+        if (nextQuery === currentQuery) {
+          if (options.forceRefreshIfUnchanged) {
+            startTransition(() => {
+              router.refresh();
+            });
+          }
+          return;
+        }
+
+        startTransition(() => {
+          router.replace(nextQuery.length > 0 ? `${pathname}?${nextQuery}` : pathname);
+        });
+      };
+
+      if (options.immediate) {
+        runApply();
+        return;
+      }
+
+      debounceTimerRef.current = window.setTimeout(() => {
+        runApply();
+        debounceTimerRef.current = null;
+      }, 400);
+    },
+    [currentQuery, draftFilters, params.page, params.size, params.sort, pathname, router]
+  );
+
+  useEffect(() => {
+    if (draftFiltersKey === lastAppliedFiltersKeyRef.current) {
       return;
     }
 
-    startTransition(() => {
-      router.replace(query.length > 0 ? `${pathname}?${query}` : pathname);
+    applyFilters({
+      immediate: false,
+      resetPage: true,
+      values: draftFilters
     });
-  }, [currentQuery, pathname, router]);
+  }, [applyFilters, draftFilters, draftFiltersKey]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      navigate({
-        q,
-        state: stateFilter,
-        status,
-        exp_from: expFrom,
-        exp_to: expTo,
-        page: 0,
-        size: params.size,
-        sort: params.sort
-      });
-    }, 400);
-
-    return () => window.clearTimeout(timer);
-  }, [expFrom, expTo, navigate, params.size, params.sort, q, stateFilter, status]);
+    return () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   function onSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    navigate({
-      q,
-      state: stateFilter,
-      status,
-      exp_from: expFrom,
-      exp_to: expTo,
-      page: 0,
-      size: params.size,
-      sort: params.sort
+    applyFilters({
+      immediate: true,
+      resetPage: true,
+      values: draftFilters,
+      forceRefreshIfUnchanged: true
     });
   }
 
   function onClear() {
+    const cleared: FilterInputs = {
+      q: "",
+      state: "",
+      status: "",
+      exp_from: "",
+      exp_to: ""
+    };
+
     setQ("");
     setStateFilter("");
     setStatus("");
     setExpFrom("");
     setExpTo("");
 
-    navigate({
-      q: "",
-      state: "",
-      status: "",
-      exp_from: "",
-      exp_to: "",
-      page: 0,
-      size: params.size,
-      sort: params.sort
-    });
+    applyFilters({ immediate: true, resetPage: true, values: cleared });
   }
 
   function removeFilter(filterKey: string) {
-    const next = {
-      q,
-      state: stateFilter,
-      status,
-      exp_from: expFrom,
-      exp_to: expTo,
-      page: 0,
-      size: params.size,
-      sort: params.sort
+    const nextValues: FilterInputs = {
+      ...draftFilters
     };
 
     if (filterKey === "q") {
-      next.q = "";
+      nextValues.q = "";
       setQ("");
     }
     if (filterKey === "state") {
-      next.state = "";
+      nextValues.state = "";
       setStateFilter("");
     }
     if (filterKey === "status") {
-      next.status = "";
+      nextValues.status = "";
       setStatus("");
     }
     if (filterKey === "exp_from") {
-      next.exp_from = "";
+      nextValues.exp_from = "";
       setExpFrom("");
     }
     if (filterKey === "exp_to") {
-      next.exp_to = "";
+      nextValues.exp_to = "";
       setExpTo("");
     }
 
-    navigate(next);
+    applyFilters({ immediate: true, resetPage: true, values: nextValues });
   }
 
   return (
@@ -180,7 +253,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
               disabled={isPending}
               className="h-9 rounded-md bg-sky-600 px-3 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
             >
-              Search
+              {isPending ? "Searching..." : "Search"}
             </button>
             <button
               type="button"

@@ -14,14 +14,14 @@ function SparklesIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 export function AssistantDrawerToggle() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const label = isDrawerOpen ? "Close Assistant" : "Open Assistant";
+  const [open, setOpen] = useState(false);
+  const label = open ? "Close Assistant" : "Open Assistant";
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsDrawerOpen((current) => !current)}
+        onClick={() => setOpen((v) => !v)}
         title={label}
         aria-label={label}
         className="group fixed bottom-6 right-6 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-sky-400/40 bg-sky-600 text-white shadow-lg shadow-sky-950/60 transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -32,7 +32,7 @@ export function AssistantDrawerToggle() {
         </span>
       </button>
 
-      <AssistantDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+      <AssistantDrawer open={open} onOpenChange={setOpen} />
     </>
   );
 }
