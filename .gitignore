@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Java / Maven
+**/target/
+
+# Node (no lockfiles for now)
+package-lock.json
+**/package-lock.json
