@@ -10,7 +10,7 @@ export default async function PolicyTermDetailPage({
   const result = await fetchPolicyTerm(params.termId);
 
   return (
-    <main className="min-h-screen lg:flex">
+    <main className="min-h-screen">
       <section className="flex-1 px-6 py-8 lg:px-10">
         <Link
           href="/policy-terms"

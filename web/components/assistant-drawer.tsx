@@ -44,7 +44,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
         onClick={() => onOpenChange(false)}
         className="absolute inset-0 bg-slate-950/70"
       />
-      <aside className="absolute right-0 top-0 h-full w-full border-l border-slate-800 bg-slate-900 p-4 shadow-2xl sm:max-w-[420px] sm:p-6">
+      <aside className="fixed right-0 top-0 h-screen w-full border-l border-slate-800 bg-slate-900 p-4 shadow-2xl sm:max-w-[420px] sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
             Assistant
