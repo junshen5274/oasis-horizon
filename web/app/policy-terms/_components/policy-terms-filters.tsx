@@ -16,7 +16,7 @@ export type PolicyTermsUrlState = {
   q: string;
   state: string;
   status: string;
-  date_field: "expiration" | "effective";
+  date_field: "effective" | "expiration";
   date_from: string;
   date_to: string;
   page: number;
@@ -46,7 +46,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const [q, setQ] = useState(params.q);
   const [stateFilter, setStateFilter] = useState(params.state);
   const [status, setStatus] = useState(params.status);
-  const [dateField, setDateField] = useState<"expiration" | "effective">(
+  const [dateField, setDateField] = useState<"effective" | "expiration">(
     params.date_field
   );
   const [dateFrom, setDateFrom] = useState(params.date_from);
@@ -246,7 +246,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
       q: "",
       state: "",
       status: "",
-      date_field: "expiration",
+      date_field: "effective",
       date_from: "",
       date_to: ""
     };
@@ -254,7 +254,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     setQ("");
     setStateFilter("");
     setStatus("");
-    setDateField("expiration");
+    setDateField("effective");
     setDateFrom("");
     setDateTo("");
 
@@ -279,10 +279,10 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
       setStatus("");
     }
     if (filterKey === "date_range") {
-      nextValues.date_field = "expiration";
+      nextValues.date_field = "effective";
       nextValues.date_from = "";
       nextValues.date_to = "";
-      setDateField("expiration");
+      setDateField("effective");
       setDateFrom("");
       setDateTo("");
     }
@@ -356,8 +356,8 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
             className="h-9 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100"
             aria-label="Date field"
           >
-            <option value="expiration">Date field: Expiration</option>
-            <option value="effective">Date field: Effective</option>
+            <option value="effective">Date field: Effective Date</option>
+            <option value="expiration">Date field: Expiration Date</option>
           </select>
           <input
             value={dateFrom}

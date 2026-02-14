@@ -20,7 +20,7 @@ function getParam(searchParams: SearchParams, key: string): string {
 }
 
 function parseDateField(value: string): "expiration" | "effective" {
-  return value === "effective" ? "effective" : "expiration";
+  return value === "expiration" ? "expiration" : "effective";
 }
 
 function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
