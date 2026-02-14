@@ -1,6 +1,14 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState, useTransition } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { buildQueryString } from "@/lib/query-string";
 
@@ -19,6 +27,11 @@ type PolicyTermsFiltersProps = {
   params: PolicyTermsUrlState;
 };
 
+type FilterInputs = Pick<
+  PolicyTermsUrlState,
+  "q" | "state" | "status" | "exp_from" | "exp_to"
+>;
+
 export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -29,17 +42,31 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const [status, setStatus] = useState(params.status);
   const [expFrom, setExpFrom] = useState(params.exp_from);
   const [expTo, setExpTo] = useState(params.exp_to);
+  const debounceTimerRef = useRef<number | null>(null);
 
-  const currentQuery = buildQueryString({
-    q: params.q,
-    state: params.state,
-    status: params.status,
-    exp_from: params.exp_from,
-    exp_to: params.exp_to,
-    page: params.page,
-    size: params.size,
-    sort: params.sort
-  });
+  const currentQuery = useMemo(
+    () =>
+      buildQueryString({
+        q: params.q,
+        state: params.state,
+        status: params.status,
+        exp_from: params.exp_from,
+        exp_to: params.exp_to,
+        page: params.page,
+        size: params.size,
+        sort: params.sort
+      }),
+    [
+      params.exp_from,
+      params.exp_to,
+      params.page,
+      params.q,
+      params.size,
+      params.sort,
+      params.state,
+      params.status
+    ]
+  );
 
   useEffect(() => {
     setQ(params.q);
@@ -57,111 +84,128 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     expTo ? { key: "exp_to", label: `Expires to: ${expTo}` } : null
   ].filter((chip): chip is { key: string; label: string } => Boolean(chip));
 
-  const navigate = useCallback((nextParams: PolicyTermsUrlState) => {
-    const query = buildQueryString({
-      q: nextParams.q,
-      state: nextParams.state,
-      status: nextParams.status,
-      exp_from: nextParams.exp_from,
-      exp_to: nextParams.exp_to,
-      page: nextParams.page,
-      size: nextParams.size,
-      sort: nextParams.sort
-    });
+  const applyFilters = useCallback(
+    (options: { immediate: boolean; values?: FilterInputs }) => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
 
-    if (query === currentQuery) {
-      return;
-    }
-
-    startTransition(() => {
-      router.replace(query.length > 0 ? `${pathname}?${query}` : pathname);
-    });
-  }, [currentQuery, pathname, router]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      navigate({
+      const nextValues: FilterInputs = options.values ?? {
         q,
         state: stateFilter,
         status,
         exp_from: expFrom,
-        exp_to: expTo,
-        page: 0,
-        size: params.size,
-        sort: params.sort
-      });
-    }, 400);
+        exp_to: expTo
+      };
 
-    return () => window.clearTimeout(timer);
-  }, [expFrom, expTo, navigate, params.size, params.sort, q, stateFilter, status]);
+      const runApply = () => {
+        const nextQuery = buildQueryString({
+          ...nextValues,
+          page: 0,
+          size: params.size,
+          sort: params.sort
+        });
+
+        if (nextQuery === currentQuery) {
+          return;
+        }
+
+        startTransition(() => {
+          router.replace(nextQuery.length > 0 ? `${pathname}?${nextQuery}` : pathname);
+        });
+      };
+
+      if (options.immediate) {
+        runApply();
+        return;
+      }
+
+      debounceTimerRef.current = window.setTimeout(() => {
+        runApply();
+        debounceTimerRef.current = null;
+      }, 400);
+    },
+    [
+      currentQuery,
+      expFrom,
+      expTo,
+      params.size,
+      params.sort,
+      pathname,
+      q,
+      router,
+      stateFilter,
+      status
+    ]
+  );
+
+  useEffect(() => {
+    applyFilters({ immediate: false });
+  }, [applyFilters]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   function onSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    navigate({
-      q,
-      state: stateFilter,
-      status,
-      exp_from: expFrom,
-      exp_to: expTo,
-      page: 0,
-      size: params.size,
-      sort: params.sort
-    });
+    applyFilters({ immediate: true });
   }
 
   function onClear() {
+    const cleared: FilterInputs = {
+      q: "",
+      state: "",
+      status: "",
+      exp_from: "",
+      exp_to: ""
+    };
+
     setQ("");
     setStateFilter("");
     setStatus("");
     setExpFrom("");
     setExpTo("");
 
-    navigate({
-      q: "",
-      state: "",
-      status: "",
-      exp_from: "",
-      exp_to: "",
-      page: 0,
-      size: params.size,
-      sort: params.sort
-    });
+    applyFilters({ immediate: true, values: cleared });
   }
 
   function removeFilter(filterKey: string) {
-    const next = {
+    const nextValues: FilterInputs = {
       q,
       state: stateFilter,
       status,
       exp_from: expFrom,
-      exp_to: expTo,
-      page: 0,
-      size: params.size,
-      sort: params.sort
+      exp_to: expTo
     };
 
     if (filterKey === "q") {
-      next.q = "";
+      nextValues.q = "";
       setQ("");
     }
     if (filterKey === "state") {
-      next.state = "";
+      nextValues.state = "";
       setStateFilter("");
     }
     if (filterKey === "status") {
-      next.status = "";
+      nextValues.status = "";
       setStatus("");
     }
     if (filterKey === "exp_from") {
-      next.exp_from = "";
+      nextValues.exp_from = "";
       setExpFrom("");
     }
     if (filterKey === "exp_to") {
-      next.exp_to = "";
+      nextValues.exp_to = "";
       setExpTo("");
     }
 
-    navigate(next);
+    applyFilters({ immediate: true, values: nextValues });
   }
 
   return (
@@ -180,7 +224,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
               disabled={isPending}
               className="h-9 rounded-md bg-sky-600 px-3 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
             >
-              Search
+              {isPending ? "Searching..." : "Search"}
             </button>
             <button
               type="button"
