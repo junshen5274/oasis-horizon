@@ -136,64 +136,80 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     <>
       <form
         onSubmit={onSearch}
-        className="mb-3 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-2 xl:grid-cols-6"
+        className="mb-2 space-y-3 rounded-xl border border-slate-800/80 bg-slate-900/30 p-4"
       >
-        <input
-          value={q}
-          onChange={(event) => setQ(event.target.value)}
-          placeholder="Search policy # or insured"
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-        />
-        <input
-          value={stateFilter}
-          onChange={(event) => setStateFilter(event.target.value)}
-          placeholder="State (e.g. CA)"
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-        />
-        <input
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          placeholder="Status"
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-        />
-        <input
-          value={expFrom}
-          onChange={(event) => setExpFrom(event.target.value)}
-          type="date"
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-        />
-        <div className="flex flex-wrap items-start gap-2 xl:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+            Filters
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="h-10 rounded-md bg-sky-600 px-4 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
+            >
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={onClear}
+              disabled={isPending}
+              className="h-10 rounded-md border border-slate-700 px-4 text-sm text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <input
+            value={q}
+            onChange={(event) => setQ(event.target.value)}
+            placeholder="Search policy # or insured"
+            className="h-10 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100 placeholder:text-slate-500 xl:col-span-2"
+          />
+          <input
+            value={stateFilter}
+            onChange={(event) => setStateFilter(event.target.value)}
+            placeholder="State (e.g. CA)"
+            className="h-10 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100 placeholder:text-slate-500"
+          />
+          <input
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            placeholder="Status"
+            className="h-10 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100 placeholder:text-slate-500"
+          />
+          <input
+            value={expFrom}
+            onChange={(event) => setExpFrom(event.target.value)}
+            type="date"
+            className="h-10 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100"
+          />
           <input
             value={expTo}
             onChange={(event) => setExpTo(event.target.value)}
             type="date"
-            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            className="h-10 rounded-md border border-slate-700/90 bg-slate-950/80 px-3 text-sm text-slate-100"
           />
-          <button
-            type="submit"
-            disabled={isPending}
-            className="shrink-0 rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
-          >
-            Search
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            className="shrink-0 rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
-          >
-            Clear
-          </button>
         </div>
+
+        <p className="text-xs text-slate-500">
+          Search by policy number, insured name. Use dates to filter expiration range.
+        </p>
       </form>
 
       {activeFilters.length > 0 ? (
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+            Active filters
+          </span>
           {activeFilters.map((filter) => (
             <button
               key={filter.key}
               type="button"
               onClick={() => removeFilter(filter.key)}
-              className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:bg-slate-800"
+              className="rounded-full border border-slate-700/90 bg-slate-900/90 px-3 py-1 text-xs text-slate-200 hover:bg-slate-800"
             >
               {filter.label} ×
             </button>
