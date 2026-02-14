@@ -12,7 +12,15 @@ You can close the drawer by:
 
 ## Policy Terms filters
 
-The `/policy-terms` filters are URL-backed (`q`, `state`, `status`, `exp_from`, `exp_to`, `page`, `size`, `sort`), so filtered results can be refreshed, shared, and bookmarked.
+The `/policy-terms` filters are URL-backed (`q`, `state`, `status`, `date_field`, `date_from`, `date_to`, `page`, `size`, `sort`), so filtered results can be refreshed, shared, and bookmarked.
+
+### Limitations / Next improvements
+
+For prototype safety, the `/policy-terms` page currently applies State/Status partial matching and date-field (`effective` vs `expiration`) range filtering on the currently fetched page results in the web app.
+
+Long-term, these filters should be implemented in the API (Postgres `ILIKE` for text filters + server-side date-field choice/range filtering) so pagination and sorting remain accurate across the full dataset.
+
+Because the prototype applies some filtering client-side per fetched page, empty states can be page-scoped (no local matches on the current page) unless the API returns a true zero total.
 
 ## Running locally
 
@@ -28,11 +36,11 @@ Default URL:
 - `http://localhost:3000/policy-terms`
 
 Optional URL params for `/policy-terms`:
-- `q`, `state`, `status`, `exp_from`, `exp_to`, `page`, `size`, `sort`
+- `q`, `state`, `status`, `date_field`, `date_from`, `date_to`, `page`, `size`, `sort`
 
 Pagination defaults:
 - `page=0`
 - `size=20`
 
 Example link:
-- `http://localhost:3000/policy-terms?q=OH&state=AZ&page=0&size=20`
+- `http://localhost:3000/policy-terms?q=OH&state=AZ&date_field=expiration&date_from=2025-01-01&page=0&size=20`

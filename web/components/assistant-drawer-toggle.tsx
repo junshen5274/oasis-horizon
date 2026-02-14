@@ -24,7 +24,7 @@ export function AssistantDrawerToggle() {
         onClick={() => setOpen((v) => !v)}
         title={label}
         aria-label={label}
-        className="group fixed bottom-6 right-6 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-sky-400/40 bg-sky-600 text-white shadow-lg shadow-sky-950/60 transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+        className="group fixed bottom-6 right-6 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-sky-400/40 bg-sky-600 text-white shadow-lg shadow-sky-950/60 transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 left-auto"
       >
         <SparklesIcon className="h-5 w-5" aria-hidden="true" />
         <span className="pointer-events-none absolute -top-10 right-0 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-md transition group-hover:opacity-100 group-focus-visible:opacity-100">
