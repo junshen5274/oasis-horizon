@@ -44,6 +44,45 @@ function buildPageHref(params: PolicyTermsUrlState, page: number): string {
   return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
 }
 
+type PolicyTermsPagerProps = {
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+  previousPageHref: string;
+  nextPageHref: string;
+};
+
+function PolicyTermsPager({
+  hasPreviousPage,
+  hasNextPage,
+  previousPageHref,
+  nextPageHref
+}: PolicyTermsPagerProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <Link
+        href={previousPageHref}
+        className={`rounded-md px-3 py-2 text-sm ${
+          hasPreviousPage
+            ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            : "pointer-events-none bg-slate-800 text-slate-500"
+        }`}
+      >
+        Prev
+      </Link>
+      <Link
+        href={nextPageHref}
+        className={`rounded-md px-3 py-2 text-sm ${
+          hasNextPage
+            ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            : "pointer-events-none bg-slate-800 text-slate-500"
+        }`}
+      >
+        Next
+      </Link>
+    </div>
+  );
+}
+
 export default async function PolicyTermsPage({
   searchParams
 }: {
@@ -98,6 +137,8 @@ export default async function PolicyTermsPage({
   const hasNextPage = (termPage.page + 1) * termPage.size < termPage.totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
   const nextPage = termPage.page + 1;
+  const previousPageHref = buildPageHref(urlState, previousPage);
+  const nextPageHref = buildPageHref(urlState, nextPage);
 
   return (
     <main className="min-h-screen lg:flex">
@@ -120,6 +161,15 @@ export default async function PolicyTermsPage({
           <div className="mb-3 text-sm text-slate-400">
             Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
             {termPage.totalElements} total)
+          </div>
+
+          <div className="mb-3">
+            <PolicyTermsPager
+              hasPreviousPage={hasPreviousPage}
+              hasNextPage={hasNextPage}
+              previousPageHref={previousPageHref}
+              nextPageHref={nextPageHref}
+            />
           </div>
 
           <div className="overflow-hidden rounded-xl border border-slate-800">
@@ -165,27 +215,13 @@ export default async function PolicyTermsPage({
             </table>
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
-            <Link
-              href={buildPageHref(urlState, previousPage)}
-              className={`rounded-md px-3 py-2 text-sm ${
-                hasPreviousPage
-                  ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
-                  : "pointer-events-none bg-slate-800 text-slate-500"
-              }`}
-            >
-              Previous
-            </Link>
-            <Link
-              href={buildPageHref(urlState, nextPage)}
-              className={`rounded-md px-3 py-2 text-sm ${
-                hasNextPage
-                  ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
-                  : "pointer-events-none bg-slate-800 text-slate-500"
-              }`}
-            >
-              Next
-            </Link>
+          <div className="mt-4">
+            <PolicyTermsPager
+              hasPreviousPage={hasPreviousPage}
+              hasNextPage={hasNextPage}
+              previousPageHref={previousPageHref}
+              nextPageHref={nextPageHref}
+            />
           </div>
         </>
       </section>

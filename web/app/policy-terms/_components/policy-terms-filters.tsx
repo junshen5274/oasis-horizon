@@ -136,7 +136,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     <>
       <form
         onSubmit={onSearch}
-        className="mb-3 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-2 xl:grid-cols-5"
+        className="mb-3 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-2 xl:grid-cols-6"
       >
         <input
           value={q}
@@ -162,7 +162,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
           type="date"
           className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-start gap-2 xl:col-span-2">
           <input
             value={expTo}
             onChange={(event) => setExpTo(event.target.value)}
@@ -172,14 +172,14 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
+            className="shrink-0 rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-900"
           >
             Search
           </button>
           <button
             type="button"
             onClick={onClear}
-            className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+            className="shrink-0 rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
           >
             Clear
           </button>
