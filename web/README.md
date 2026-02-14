@@ -20,6 +20,8 @@ For prototype safety, the `/policy-terms` page currently applies State/Status pa
 
 Long-term, these filters should be implemented in the API (Postgres `ILIKE` for text filters + server-side date-field choice/range filtering) so pagination and sorting remain accurate across the full dataset.
 
+Because the prototype applies some filtering client-side per fetched page, empty states can be page-scoped (no local matches on the current page) unless the API returns a true zero total.
+
 ## Running locally
 
 Start the web app:

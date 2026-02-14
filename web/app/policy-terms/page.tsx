@@ -190,8 +190,13 @@ export default async function PolicyTermsPage({
 
   const termPage = result.data;
   const visibleItems = applyClientSideFilters(termPage.items, urlState);
+  const totalElements =
+    typeof termPage.totalElements === "number" ? termPage.totalElements : termPage.items.length;
+  const hasGlobalResults = totalElements > 0;
+  const showPageScopedEmptyState = visibleItems.length === 0 && hasGlobalResults;
+  const showGlobalEmptyState = visibleItems.length === 0 && !hasGlobalResults;
   const hasPreviousPage = termPage.page > 0;
-  const hasNextPage = (termPage.page + 1) * termPage.size < termPage.totalElements;
+  const hasNextPage = (termPage.page + 1) * termPage.size < totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
   const nextPage = termPage.page + 1;
   const previousPageHref = buildPageHref(urlState, previousPage);
@@ -217,7 +222,7 @@ export default async function PolicyTermsPage({
         <>
           <div className="mb-3 text-sm text-slate-400">
             Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
-            {termPage.totalElements} total)
+            {totalElements} total)
           </div>
 
           <div className="mb-3">
@@ -261,7 +266,17 @@ export default async function PolicyTermsPage({
                     <td className="px-4 py-3 text-slate-300">{term.effectiveToDate}</td>
                   </tr>
                 ))}
-                {visibleItems.length === 0 ? (
+                {showPageScopedEmptyState ? (
+                  <tr>
+                    <td className="px-4 py-6 text-slate-300" colSpan={6}>
+                      <p className="font-medium text-slate-200">No matches on this page</p>
+                      <p className="mt-1 text-sm text-slate-400">
+                        Try Next/Prev, or adjust filters.
+                      </p>
+                    </td>
+                  </tr>
+                ) : null}
+                {showGlobalEmptyState ? (
                   <tr>
                     <td className="px-4 py-6 text-slate-400" colSpan={6}>
                       No policy terms matched your filters.
