@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { AssistantDrawerToggle } from "@/components/assistant-drawer-toggle";
 import { fetchPolicyTerms, type PolicyTermSearchParams } from "@/lib/api";
+import { buildQueryString } from "@/lib/query-string";
+import {
+  PolicyTermsFilters,
+  type PolicyTermsUrlState
+} from "./_components/policy-terms-filters";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -9,9 +14,37 @@ function getParam(searchParams: SearchParams, key: string): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
-function parsePage(searchParams: SearchParams): number {
-  const raw = Number(getParam(searchParams, "page"));
-  return Number.isFinite(raw) && raw >= 0 ? raw : 0;
+function parseNonNegativeInt(raw: string, fallback: number): number {
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
+  return {
+    q: getParam(searchParams, "q"),
+    state: getParam(searchParams, "state"),
+    status: getParam(searchParams, "status"),
+    exp_from: getParam(searchParams, "exp_from"),
+    exp_to: getParam(searchParams, "exp_to"),
+    page: parseNonNegativeInt(getParam(searchParams, "page"), 0),
+    size: parseNonNegativeInt(getParam(searchParams, "size"), 20),
+    sort: getParam(searchParams, "sort") || "effective_to_date,asc"
+  };
+}
+
+function buildPageHref(params: PolicyTermsUrlState, page: number): string {
+  const query = buildQueryString({
+    q: params.q,
+    state: params.state,
+    status: params.status,
+    exp_from: params.exp_from,
+    exp_to: params.exp_to,
+    page,
+    size: params.size,
+    sort: params.sort
+  });
+
+  return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
 }
 
 export default async function PolicyTermsPage({
@@ -19,22 +52,17 @@ export default async function PolicyTermsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const q = getParam(searchParams, "q");
-  const state = getParam(searchParams, "state");
-  const status = getParam(searchParams, "status");
-  const expFrom = getParam(searchParams, "exp_from");
-  const expTo = getParam(searchParams, "exp_to");
-  const page = parsePage(searchParams);
+  const urlState = parseUrlState(searchParams);
 
   const filters: PolicyTermSearchParams = {
-    q,
-    state,
-    status,
-    exp_from: expFrom,
-    exp_to: expTo,
-    page,
-    size: 20,
-    sort: "effective_to_date,asc"
+    q: urlState.q,
+    state: urlState.state,
+    status: urlState.status,
+    exp_from: urlState.exp_from,
+    exp_to: urlState.exp_to,
+    page: urlState.page,
+    size: urlState.size,
+    sort: urlState.sort
   };
 
   const result = await fetchPolicyTerms(filters);
@@ -55,46 +83,7 @@ export default async function PolicyTermsPage({
             </p>
           </header>
 
-          <form className="mb-6 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-2 xl:grid-cols-5">
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Search policy # or insured"
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-            />
-            <input
-              name="state"
-              defaultValue={state}
-              placeholder="State (e.g. CA)"
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-            />
-            <input
-              name="status"
-              defaultValue={status}
-              placeholder="Status"
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-            />
-            <input
-              name="exp_from"
-              defaultValue={expFrom}
-              type="date"
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-            />
-            <div className="flex gap-2">
-              <input
-                name="exp_to"
-                defaultValue={expTo}
-                type="date"
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-              />
-              <button
-                type="submit"
-                className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          <PolicyTermsFilters params={urlState} />
 
           <div className="rounded-xl border border-amber-700/40 bg-amber-950/30 p-4 text-sm text-amber-100">
             <p className="font-medium">Policy terms are temporarily unavailable.</p>
@@ -108,8 +97,10 @@ export default async function PolicyTermsPage({
   }
 
   const termPage = result.data;
+  const hasPreviousPage = termPage.page > 0;
+  const hasNextPage = (termPage.page + 1) * termPage.size < termPage.totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
-  const nextPage = Math.min(termPage.page + 1, Math.max(termPage.totalPages - 1, 0));
+  const nextPage = termPage.page + 1;
 
   return (
     <main className="min-h-screen lg:flex">
@@ -126,118 +117,79 @@ export default async function PolicyTermsPage({
           </p>
         </header>
 
-        <form className="mb-6 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-2 xl:grid-cols-5">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search policy # or insured"
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-          />
-          <input
-            name="state"
-            defaultValue={state}
-            placeholder="State (e.g. CA)"
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-          />
-          <input
-            name="status"
-            defaultValue={status}
-            placeholder="Status"
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-          />
-          <input
-            name="exp_from"
-            defaultValue={expFrom}
-            type="date"
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-          />
-          <div className="flex gap-2">
-            <input
-              name="exp_to"
-              defaultValue={expTo}
-              type="date"
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-            >
-              Search
-            </button>
-          </div>
-        </form>
+        <PolicyTermsFilters params={urlState} />
 
         <>
-            <div className="mb-3 text-sm text-slate-400">
-              Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
-              {termPage.totalElements} total)
-            </div>
+          <div className="mb-3 text-sm text-slate-400">
+            Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
+            {termPage.totalElements} total)
+          </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-800">
-              <table className="min-w-full divide-y divide-slate-800 text-sm">
-                <thead className="bg-slate-900/70 text-left text-slate-300">
-                  <tr>
-                    <th className="px-4 py-3">Policy</th>
-                    <th className="px-4 py-3">Insured</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Term</th>
-                    <th className="px-4 py-3">Expiration</th>
+          <div className="overflow-hidden rounded-xl border border-slate-800">
+            <table className="min-w-full divide-y divide-slate-800 text-sm">
+              <thead className="bg-slate-900/70 text-left text-slate-300">
+                <tr>
+                  <th className="px-4 py-3">Policy</th>
+                  <th className="px-4 py-3">Insured</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Term</th>
+                  <th className="px-4 py-3">Expiration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 bg-slate-950/40">
+                {termPage.items.map((term) => (
+                  <tr key={term.id} className="hover:bg-slate-900/70">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/policy-terms/${term.id}`}
+                        className="font-medium text-sky-300 hover:text-sky-200"
+                      >
+                        {term.policyNumber}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-slate-200">{term.insuredName}</td>
+                    <td className="px-4 py-3 text-slate-300">{term.status}</td>
+                    <td className="px-4 py-3 text-slate-300">
+                      #{term.termNumber} · {term.state}
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">
+                      {term.effectiveToDate}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 bg-slate-950/40">
-                  {termPage.items.map((term) => (
-                    <tr key={term.id} className="hover:bg-slate-900/70">
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/policy-terms/${term.id}`}
-                          className="font-medium text-sky-300 hover:text-sky-200"
-                        >
-                          {term.policyNumber}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-slate-200">{term.insuredName}</td>
-                      <td className="px-4 py-3 text-slate-300">{term.status}</td>
-                      <td className="px-4 py-3 text-slate-300">
-                        #{term.termNumber} · {term.state}
-                      </td>
-                      <td className="px-4 py-3 text-slate-300">
-                        {term.effectiveToDate}
-                      </td>
-                    </tr>
-                  ))}
-                  {termPage.items.length === 0 ? (
-                    <tr>
-                      <td className="px-4 py-6 text-slate-400" colSpan={5}>
-                        No policy terms matched your filters.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {termPage.items.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-6 text-slate-400" colSpan={5}>
+                      No policy terms matched your filters.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
 
-            <div className="mt-4 flex items-center gap-2">
-              <Link
-                href={{ query: { ...searchParams, page: previousPage } }}
-                className={`rounded-md px-3 py-2 text-sm ${
-                  termPage.page === 0
-                    ? "pointer-events-none bg-slate-800 text-slate-500"
-                    : "bg-slate-800 text-slate-200 hover:bg-slate-700"
-                }`}
-              >
-                Previous
-              </Link>
-              <Link
-                href={{ query: { ...searchParams, page: nextPage } }}
-                className={`rounded-md px-3 py-2 text-sm ${
-                  termPage.page >= termPage.totalPages - 1
-                    ? "pointer-events-none bg-slate-800 text-slate-500"
-                    : "bg-slate-800 text-slate-200 hover:bg-slate-700"
-                }`}
-              >
-                Next
-              </Link>
-            </div>
+          <div className="mt-4 flex items-center gap-2">
+            <Link
+              href={buildPageHref(urlState, previousPage)}
+              className={`rounded-md px-3 py-2 text-sm ${
+                hasPreviousPage
+                  ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                  : "pointer-events-none bg-slate-800 text-slate-500"
+              }`}
+            >
+              Previous
+            </Link>
+            <Link
+              href={buildPageHref(urlState, nextPage)}
+              className={`rounded-md px-3 py-2 text-sm ${
+                hasNextPage
+                  ? "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                  : "pointer-events-none bg-slate-800 text-slate-500"
+              }`}
+            >
+              Next
+            </Link>
+          </div>
         </>
       </section>
 

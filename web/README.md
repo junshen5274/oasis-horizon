@@ -9,3 +9,7 @@ You can close the drawer by:
 - clicking the **X** close button in the drawer header,
 - pressing the **Escape (ESC)** key,
 - clicking the backdrop overlay.
+
+## Policy Terms filters
+
+The `/policy-terms` filters are URL-backed (`q`, `state`, `status`, `exp_from`, `exp_to`, `page`, `size`, `sort`), so filtered results can be refreshed, shared, and bookmarked.
