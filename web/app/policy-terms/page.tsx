@@ -105,7 +105,7 @@ export default async function PolicyTermsPage({
 
   if (!result.ok) {
     return (
-      <main className="min-h-screen lg:flex">
+      <main className="min-h-screen">
         <section className="flex-1 px-6 py-8 lg:px-10">
           <header className="mb-6 space-y-2">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
@@ -141,7 +141,7 @@ export default async function PolicyTermsPage({
   const nextPageHref = buildPageHref(urlState, nextPage);
 
   return (
-    <main className="min-h-screen lg:flex">
+    <main className="min-h-screen">
       <section className="flex-1 px-6 py-8 lg:px-10">
         <header className="mb-6 space-y-2">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
