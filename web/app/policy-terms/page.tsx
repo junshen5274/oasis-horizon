@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { AssistantDrawerToggle } from "@/components/assistant-drawer-toggle";
-import { fetchPolicyTerms, type PolicyTermSearchParams } from "@/lib/api";
+import {
+  fetchPolicyTerms,
+  type PolicyTermSearchParams,
+  type PolicyTermSummary
+} from "@/lib/api";
 import { parseNonNegativeInt, parsePositiveInt } from "@/lib/query";
 import { buildQueryString } from "@/lib/query-string";
 import {
@@ -15,14 +19,18 @@ function getParam(searchParams: SearchParams, key: string): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
+function parseDateField(value: string): "expiration" | "effective" {
+  return value === "effective" ? "effective" : "expiration";
+}
 
 function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
   return {
     q: getParam(searchParams, "q"),
     state: getParam(searchParams, "state"),
     status: getParam(searchParams, "status"),
-    exp_from: getParam(searchParams, "exp_from"),
-    exp_to: getParam(searchParams, "exp_to"),
+    date_field: parseDateField(getParam(searchParams, "date_field")),
+    date_from: getParam(searchParams, "date_from"),
+    date_to: getParam(searchParams, "date_to"),
     page: parseNonNegativeInt(getParam(searchParams, "page"), 0),
     size: parsePositiveInt(getParam(searchParams, "size"), 20),
     sort: getParam(searchParams, "sort") || "effective_to_date,asc"
@@ -34,14 +42,66 @@ function buildPageHref(params: PolicyTermsUrlState, page: number): string {
     q: params.q,
     state: params.state,
     status: params.status,
-    exp_from: params.exp_from,
-    exp_to: params.exp_to,
+    date_field: params.date_field,
+    date_from: params.date_from,
+    date_to: params.date_to,
     page,
     size: params.size,
     sort: params.sort
   });
 
   return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
+}
+
+function inDateRange(value: string, from: string, to: string): boolean {
+  if (!value) {
+    return false;
+  }
+  if (from && value < from) {
+    return false;
+  }
+  if (to && value > to) {
+    return false;
+  }
+  return true;
+}
+
+function applyClientSideFilters(
+  items: PolicyTermSummary[],
+  filters: PolicyTermsUrlState
+): PolicyTermSummary[] {
+  const normalizedState = filters.state.trim().toLowerCase();
+  const normalizedStatus = filters.status.trim().toLowerCase();
+
+  return items.filter((term) => {
+    if (
+      normalizedState &&
+      !term.state.toLowerCase().includes(normalizedState)
+    ) {
+      return false;
+    }
+
+    if (
+      normalizedStatus &&
+      !term.status.toLowerCase().includes(normalizedStatus)
+    ) {
+      return false;
+    }
+
+    const hasDateRange = Boolean(filters.date_from || filters.date_to);
+    if (hasDateRange) {
+      const dateToCheck =
+        filters.date_field === "effective"
+          ? term.effectiveFromDate
+          : term.effectiveToDate;
+
+      if (!inDateRange(dateToCheck, filters.date_from, filters.date_to)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 
 type PolicyTermsPagerProps = {
@@ -92,10 +152,6 @@ export default async function PolicyTermsPage({
 
   const filters: PolicyTermSearchParams = {
     q: urlState.q,
-    state: urlState.state,
-    status: urlState.status,
-    exp_from: urlState.exp_from,
-    exp_to: urlState.exp_to,
     page: urlState.page,
     size: urlState.size,
     sort: urlState.sort
@@ -133,6 +189,7 @@ export default async function PolicyTermsPage({
   }
 
   const termPage = result.data;
+  const visibleItems = applyClientSideFilters(termPage.items, urlState);
   const hasPreviousPage = termPage.page > 0;
   const hasNextPage = (termPage.page + 1) * termPage.size < termPage.totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
@@ -180,11 +237,12 @@ export default async function PolicyTermsPage({
                   <th className="px-4 py-3">Insured</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Term</th>
+                  <th className="px-4 py-3">Effective</th>
                   <th className="px-4 py-3">Expiration</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40">
-                {termPage.items.map((term) => (
+                {visibleItems.map((term) => (
                   <tr key={term.id} className="hover:bg-slate-900/70">
                     <td className="px-4 py-3">
                       <Link
@@ -199,14 +257,13 @@ export default async function PolicyTermsPage({
                     <td className="px-4 py-3 text-slate-300">
                       #{term.termNumber} · {term.state}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">
-                      {term.effectiveToDate}
-                    </td>
+                    <td className="px-4 py-3 text-slate-300">{term.effectiveFromDate}</td>
+                    <td className="px-4 py-3 text-slate-300">{term.effectiveToDate}</td>
                   </tr>
                 ))}
-                {termPage.items.length === 0 ? (
+                {visibleItems.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-6 text-slate-400" colSpan={5}>
+                    <td className="px-4 py-6 text-slate-400" colSpan={6}>
                       No policy terms matched your filters.
                     </td>
                   </tr>

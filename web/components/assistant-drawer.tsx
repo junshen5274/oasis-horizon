@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type AssistantTab = "search" | "summary";
 
@@ -16,6 +17,11 @@ type AssistantDrawerProps = {
 
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [activeTab, setActiveTab] = useState<AssistantTab>("search");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -32,11 +38,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onOpenChange]);
 
-  if (!open) {
+  if (!mounted || !open) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40">
       <button
         type="button"
@@ -81,15 +87,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-300">
           {activeTab === "search" ? (
-            <p>
-              Natural language search controls will appear here in a future
-              phase.
-            </p>
+            <p>Natural language search controls will appear here in a future phase.</p>
           ) : (
             <p>Grounded policy summaries will appear here in a future phase.</p>
           )}
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 }

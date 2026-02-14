@@ -43,3 +43,14 @@
 - Demo dataset polish
 - Small UX improvements
 - README with run steps
+
+
+## Future backend improvements (avoid client-side filtering)
+
+Current prototype behavior on `/policy-terms` includes some client-side filtering on the current fetched page (State/Status partial match and date field choice). This keeps v1 moving without changing API contracts, but the real system should move these filters fully server-side.
+
+Recommended API/data enhancements:
+- Add Postgres `ILIKE` partial matching for `state` and `status` (and other text fields where partial search is useful).
+- Add server-side date filtering with explicit date-field choice (`date_field=effective|expiration`) and date range (`date_from`, `date_to`).
+- Implement end-to-end in controller → service → repository so pagination and sorting remain correct across the full dataset.
+- Keep query params stable for the web app: `state`, `status`, `date_field`, `date_from`, `date_to`.
