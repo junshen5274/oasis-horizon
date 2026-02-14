@@ -1,3 +1,5 @@
+import { parseNonNegativeInt, parsePositiveInt } from "@/lib/query";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
@@ -104,8 +106,8 @@ export async function fetchPolicyTerms(
   params: PolicyTermSearchParams = {}
 ): Promise<ApiResult<PolicyTermPage>> {
   const requestParams: Record<string, string> = {
-    page: String(params.page ?? 0),
-    size: String(params.size ?? 20),
+    page: String(parseNonNegativeInt(params.page, 0)),
+    size: String(parsePositiveInt(params.size, 20)),
     sort: params.sort ?? "effective_to_date,asc"
   };
 

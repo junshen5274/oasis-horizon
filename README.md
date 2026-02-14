@@ -28,6 +28,20 @@ cd api
 mvn spring-boot:run
 ```
 
+### Running locally (web)
+Default route:
+- `http://localhost:3000/policy-terms`
+
+Optional URL params for `/policy-terms`:
+- `q`, `state`, `status`, `exp_from`, `exp_to`, `page`, `size`, `sort`
+
+Pagination defaults:
+- `page=0`
+- `size=20` (default page size)
+
+Example:
+- `http://localhost:3000/policy-terms?q=OH&state=AZ&page=0&size=20`
+
 ## Phase 2: Postgres + seed + Policy Term APIs
 ### Start Postgres (local dev)
 ```bash
