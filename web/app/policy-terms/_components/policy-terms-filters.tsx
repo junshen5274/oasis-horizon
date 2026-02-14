@@ -32,6 +32,10 @@ type FilterInputs = Pick<
   "q" | "state" | "status" | "exp_from" | "exp_to"
 >;
 
+function buildFiltersKey(filters: FilterInputs): string {
+  return `${filters.q}|${filters.state}|${filters.status}|${filters.exp_from}|${filters.exp_to}`;
+}
+
 export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,39 +46,59 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   const [status, setStatus] = useState(params.status);
   const [expFrom, setExpFrom] = useState(params.exp_from);
   const [expTo, setExpTo] = useState(params.exp_to);
+
   const debounceTimerRef = useRef<number | null>(null);
+
+  const appliedFilters = useMemo<FilterInputs>(
+    () => ({
+      q: params.q,
+      state: params.state,
+      status: params.status,
+      exp_from: params.exp_from,
+      exp_to: params.exp_to
+    }),
+    [params.exp_from, params.exp_to, params.q, params.state, params.status]
+  );
+
+  const appliedFiltersKey = useMemo(
+    () => buildFiltersKey(appliedFilters),
+    [appliedFilters]
+  );
+
+  const draftFilters = useMemo<FilterInputs>(
+    () => ({
+      q,
+      state: stateFilter,
+      status,
+      exp_from: expFrom,
+      exp_to: expTo
+    }),
+    [expFrom, expTo, q, stateFilter, status]
+  );
+
+  const draftFiltersKey = useMemo(() => buildFiltersKey(draftFilters), [draftFilters]);
+
+  const lastAppliedFiltersKeyRef = useRef(appliedFiltersKey);
 
   const currentQuery = useMemo(
     () =>
       buildQueryString({
-        q: params.q,
-        state: params.state,
-        status: params.status,
-        exp_from: params.exp_from,
-        exp_to: params.exp_to,
+        ...appliedFilters,
         page: params.page,
         size: params.size,
         sort: params.sort
       }),
-    [
-      params.exp_from,
-      params.exp_to,
-      params.page,
-      params.q,
-      params.size,
-      params.sort,
-      params.state,
-      params.status
-    ]
+    [appliedFilters, params.page, params.size, params.sort]
   );
 
   useEffect(() => {
-    setQ(params.q);
-    setStateFilter(params.state);
-    setStatus(params.status);
-    setExpFrom(params.exp_from);
-    setExpTo(params.exp_to);
-  }, [params]);
+    lastAppliedFiltersKeyRef.current = appliedFiltersKey;
+    setQ(appliedFilters.q);
+    setStateFilter(appliedFilters.state);
+    setStatus(appliedFilters.status);
+    setExpFrom(appliedFilters.exp_from);
+    setExpTo(appliedFilters.exp_to);
+  }, [appliedFilters, appliedFiltersKey]);
 
   const activeFilters = [
     q ? { key: "q", label: `Keyword: ${q}` } : null,
@@ -85,29 +109,36 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
   ].filter((chip): chip is { key: string; label: string } => Boolean(chip));
 
   const applyFilters = useCallback(
-    (options: { immediate: boolean; values?: FilterInputs }) => {
+    (options: {
+      immediate: boolean;
+      resetPage: boolean;
+      values?: FilterInputs;
+      nextPage?: number;
+      forceRefreshIfUnchanged?: boolean;
+    }) => {
       if (debounceTimerRef.current) {
         window.clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
       }
 
-      const nextValues: FilterInputs = options.values ?? {
-        q,
-        state: stateFilter,
-        status,
-        exp_from: expFrom,
-        exp_to: expTo
-      };
+      const nextValues: FilterInputs = options.values ?? draftFilters;
 
       const runApply = () => {
         const nextQuery = buildQueryString({
           ...nextValues,
-          page: 0,
+          page:
+            options.nextPage ??
+            (options.resetPage ? 0 : params.page),
           size: params.size,
           sort: params.sort
         });
 
         if (nextQuery === currentQuery) {
+          if (options.forceRefreshIfUnchanged) {
+            startTransition(() => {
+              router.refresh();
+            });
+          }
           return;
         }
 
@@ -126,23 +157,20 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
         debounceTimerRef.current = null;
       }, 400);
     },
-    [
-      currentQuery,
-      expFrom,
-      expTo,
-      params.size,
-      params.sort,
-      pathname,
-      q,
-      router,
-      stateFilter,
-      status
-    ]
+    [currentQuery, draftFilters, params.page, params.size, params.sort, pathname, router]
   );
 
   useEffect(() => {
-    applyFilters({ immediate: false });
-  }, [applyFilters]);
+    if (draftFiltersKey === lastAppliedFiltersKeyRef.current) {
+      return;
+    }
+
+    applyFilters({
+      immediate: false,
+      resetPage: true,
+      values: draftFilters
+    });
+  }, [applyFilters, draftFilters, draftFiltersKey]);
 
   useEffect(() => {
     return () => {
@@ -154,7 +182,12 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
 
   function onSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    applyFilters({ immediate: true });
+    applyFilters({
+      immediate: true,
+      resetPage: true,
+      values: draftFilters,
+      forceRefreshIfUnchanged: true
+    });
   }
 
   function onClear() {
@@ -172,16 +205,12 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     setExpFrom("");
     setExpTo("");
 
-    applyFilters({ immediate: true, values: cleared });
+    applyFilters({ immediate: true, resetPage: true, values: cleared });
   }
 
   function removeFilter(filterKey: string) {
     const nextValues: FilterInputs = {
-      q,
-      state: stateFilter,
-      status,
-      exp_from: expFrom,
-      exp_to: expTo
+      ...draftFilters
     };
 
     if (filterKey === "q") {
@@ -205,7 +234,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
       setExpTo("");
     }
 
-    applyFilters({ immediate: true, values: nextValues });
+    applyFilters({ immediate: true, resetPage: true, values: nextValues });
   }
 
   return (

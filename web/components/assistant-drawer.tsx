@@ -37,7 +37,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-40">
       <button
         type="button"
         aria-label="Close Assistant"
