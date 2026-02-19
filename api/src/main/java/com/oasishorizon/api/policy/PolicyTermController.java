@@ -60,9 +60,18 @@ public class PolicyTermController {
       @RequestParam(name = "exp_to", required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate expTo,
+      @RequestParam(name = "eff_from", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate effFrom,
+      @RequestParam(name = "eff_to", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate effTo,
       @RequestParam(defaultValue = "0") @Min(0) int page,
       @RequestParam(defaultValue = "20") @Min(1) @Max(200) int size,
       @RequestParam(defaultValue = "effective_to_date,asc") String sort) {
+    validateDateRange(expFrom, expTo, "exp_from", "exp_to");
+    validateDateRange(effFrom, effTo, "eff_from", "eff_to");
+
     Sort sortSpec = parseSort(sort);
     PageRequest pageRequest = PageRequest.of(page, size, sortSpec);
     Page<PolicyTerm> result =
@@ -70,6 +79,8 @@ public class PolicyTermController {
             Optional.ofNullable(query),
             Optional.ofNullable(state),
             Optional.ofNullable(status),
+            Optional.ofNullable(effFrom),
+            Optional.ofNullable(effTo),
             Optional.ofNullable(expFrom),
             Optional.ofNullable(expTo),
             pageRequest);
@@ -111,6 +122,14 @@ public class PolicyTermController {
           Sort.Direction.fromOptionalString(parts[1].trim()).orElse(Sort.Direction.ASC);
     }
     return Sort.by(new Sort.Order(direction, mapped));
+  }
+
+  private void validateDateRange(LocalDate from, LocalDate to, String fromField, String toField) {
+    if (from != null && to != null && from.isAfter(to)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          String.format("%s must be <= %s", fromField, toField));
+    }
   }
 
   private PolicyTermSummaryResponse toSummary(PolicyTerm term) {

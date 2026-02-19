@@ -23,10 +23,13 @@ public class PolicyTermService {
       Optional<String> query,
       Optional<String> state,
       Optional<String> status,
+      Optional<LocalDate> effFrom,
+      Optional<LocalDate> effTo,
       Optional<LocalDate> expFrom,
       Optional<LocalDate> expTo,
       Pageable pageable) {
-    Specification<PolicyTerm> specification = buildSpecification(query, state, status, expFrom, expTo);
+    Specification<PolicyTerm> specification =
+        buildSpecification(query, state, status, effFrom, effTo, expFrom, expTo);
     return policyTermRepository.findAll(specification, pageable);
   }
 
@@ -38,6 +41,8 @@ public class PolicyTermService {
       Optional<String> query,
       Optional<String> state,
       Optional<String> status,
+      Optional<LocalDate> effFrom,
+      Optional<LocalDate> effTo,
       Optional<LocalDate> expFrom,
       Optional<LocalDate> expTo) {
     return (root, criteriaQuery, criteriaBuilder) -> {
@@ -72,6 +77,16 @@ public class PolicyTermService {
                   predicates.add(
                       criteriaBuilder.equal(
                           criteriaBuilder.lower(root.get("status")), value.toLowerCase(Locale.US))));
+
+      effFrom.ifPresent(
+          date ->
+              predicates.add(
+                  criteriaBuilder.greaterThanOrEqualTo(root.get("effectiveFromDate"), date)));
+
+      effTo.ifPresent(
+          date ->
+              predicates.add(
+                  criteriaBuilder.lessThanOrEqualTo(root.get("effectiveFromDate"), date)));
 
       expFrom.ifPresent(
           date ->
