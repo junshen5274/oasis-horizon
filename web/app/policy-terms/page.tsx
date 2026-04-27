@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { AssistantDrawerToggle } from "@/components/assistant-drawer-toggle";
-import {
-  fetchPolicyTerms,
-  type PolicyTermSearchParams,
-  type PolicyTermSummary
-} from "@/lib/api";
+import { fetchPolicyTerms, type PolicyTermSearchParams } from "@/lib/api";
 import { parseNonNegativeInt, parsePositiveInt } from "@/lib/query";
 import { buildQueryString } from "@/lib/query-string";
 import {
@@ -20,7 +16,7 @@ function getParam(searchParams: SearchParams, key: string): string {
 }
 
 function parseDateField(value: string): "expiration" | "effective" {
-  return value === "expiration" ? "expiration" : "effective";
+  return value === "effective" ? "effective" : "expiration";
 }
 
 function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
@@ -51,57 +47,6 @@ function buildPageHref(params: PolicyTermsUrlState, page: number): string {
   });
 
   return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
-}
-
-function inDateRange(value: string, from: string, to: string): boolean {
-  if (!value) {
-    return false;
-  }
-  if (from && value < from) {
-    return false;
-  }
-  if (to && value > to) {
-    return false;
-  }
-  return true;
-}
-
-function applyClientSideFilters(
-  items: PolicyTermSummary[],
-  filters: PolicyTermsUrlState
-): PolicyTermSummary[] {
-  const normalizedState = filters.state.trim().toLowerCase();
-  const normalizedStatus = filters.status.trim().toLowerCase();
-
-  return items.filter((term) => {
-    if (
-      normalizedState &&
-      !term.state.toLowerCase().includes(normalizedState)
-    ) {
-      return false;
-    }
-
-    if (
-      normalizedStatus &&
-      !term.status.toLowerCase().includes(normalizedStatus)
-    ) {
-      return false;
-    }
-
-    const hasDateRange = Boolean(filters.date_from || filters.date_to);
-    if (hasDateRange) {
-      const dateToCheck =
-        filters.date_field === "effective"
-          ? term.effectiveFromDate
-          : term.effectiveToDate;
-
-      if (!inDateRange(dateToCheck, filters.date_from, filters.date_to)) {
-        return false;
-      }
-    }
-
-    return true;
-  });
 }
 
 type PolicyTermsPagerProps = {
@@ -176,6 +121,11 @@ export default async function PolicyTermsPage({
 
   const filters: PolicyTermSearchParams = {
     q: urlState.q,
+    state: urlState.state,
+    status: urlState.status,
+    date_field: urlState.date_field,
+    date_from: urlState.date_from,
+    date_to: urlState.date_to,
     page: urlState.page,
     size: urlState.size,
     sort: urlState.sort
@@ -213,12 +163,9 @@ export default async function PolicyTermsPage({
   }
 
   const termPage = result.data;
-  const visibleItems = applyClientSideFilters(termPage.items, urlState);
   const totalElements =
     typeof termPage.totalElements === "number" ? termPage.totalElements : termPage.items.length;
-  const hasGlobalResults = totalElements > 0;
-  const showPageScopedEmptyState = visibleItems.length === 0 && hasGlobalResults;
-  const showGlobalEmptyState = visibleItems.length === 0 && !hasGlobalResults;
+  const showEmptyState = termPage.items.length === 0;
   const hasPreviousPage = termPage.page > 0;
   const hasNextPage = (termPage.page + 1) * termPage.size < totalElements;
   const previousPage = Math.max(termPage.page - 1, 0);
@@ -276,7 +223,7 @@ export default async function PolicyTermsPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40">
-                {visibleItems.map((term) => (
+                {termPage.items.map((term) => (
                   <tr key={term.id} className="hover:bg-slate-900/70">
                     <td className="px-4 py-3">
                       <Link
@@ -295,17 +242,7 @@ export default async function PolicyTermsPage({
                     <td className="px-4 py-3 text-slate-300">{term.effectiveToDate}</td>
                   </tr>
                 ))}
-                {showPageScopedEmptyState ? (
-                  <tr>
-                    <td className="px-4 py-6 text-slate-300" colSpan={6}>
-                      <p className="font-medium text-slate-200">No matches on this page</p>
-                      <p className="mt-1 text-sm text-slate-400">
-                        Try Next/Prev, or adjust filters.
-                      </p>
-                    </td>
-                  </tr>
-                ) : null}
-                {showGlobalEmptyState ? (
+                {showEmptyState ? (
                   <tr>
                     <td className="px-4 py-6 text-slate-400" colSpan={6}>
                       No policy terms matched your filters.
