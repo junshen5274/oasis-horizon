@@ -2,9 +2,9 @@
 
 ## Current Focus
 
-Server-side filter correctness for `/policy-terms`.
+AI Search v1 for the Assistant drawer.
 
-This must be completed before implementing AI Search v1. The goal is to make pagination, total count, filtering, and empty-state behavior correct across the full dataset, not just the current fetched page.
+Phase 5 server-side filter correctness is completed. The `/policy-terms` page now has a cleaner foundation for AI Search because pagination, total count, filtering, and empty-state behavior are handled consistently by the backend.
 
 ---
 
@@ -38,16 +38,13 @@ This must be completed before implementing AI Search v1. The goal is to make pag
 - Loading/error state handling
 - URL-driven search and pagination params
 
-## Phase 5: Server-side filter correctness 🚧 Next
+## Phase 5: Server-side filter correctness ✅ Completed
 
 ### Goal
 Move all `/policy-terms` filters fully server-side so pagination, total count, and empty states are correct.
 
-### Current Issue
-The frontend currently sends only part of the filter state to the API, then applies some filters on the current fetched page. This can create incorrect behavior, such as showing “No matches on this page” even though matching records exist on another page.
-
-### Desired API Parameters
-The `/api/policy-terms` endpoint should support:
+### Completed Behavior
+The `/api/policy-terms` endpoint supports:
 
 - `q`
 - `state`
@@ -65,92 +62,56 @@ The `/api/policy-terms` endpoint should support:
 - Missing `date_field` defaults to `expiration`
 - Unsupported `date_field` returns `400 Bad Request`
 
-### Backend Changes
-Update `api/src/main/java/com/oasishorizon/api/policy/PolicyTermController.java`:
+### Backend Completion Notes
+`api/src/main/java/com/oasishorizon/api/policy/PolicyTermController.java`:
 
-- Replace `exp_from` / `exp_to` request parameters with:
-  - `date_field`
-  - `date_from`
-  - `date_to`
-- Validate `date_field`; only allow `effective` or `expiration`
-- Pass normalized date field and date range to the service
+- Accepts `date_field`, `date_from`, and `date_to`
+- Validates `date_field`; only allows `effective` or `expiration`
+- Passes normalized date field and date range to the service
 
-Update `api/src/main/java/com/oasishorizon/api/policy/PolicyTermService.java`:
+`api/src/main/java/com/oasishorizon/api/policy/PolicyTermService.java`:
 
-- Update `search(...)` and `buildSpecification(...)` signatures
-- Choose date property dynamically:
+- Chooses date property dynamically:
   - `effective` → `effectiveFromDate`
   - `expiration` → `effectiveToDate`
-- Apply `date_from` and `date_to` against the selected date property
-- Keep `state` and `status` as exact case-insensitive matches for now
+- Applies `date_from` and `date_to` against the selected date property
+- Keeps `state` and `status` as exact case-insensitive matches for now
 
-### Frontend Changes
-Update `web/lib/api.ts`:
+### Frontend Completion Notes
+`web/lib/api.ts`:
 
-- Replace `exp_from` / `exp_to` in `PolicyTermSearchParams` with:
-  - `date_field?: "effective" | "expiration"`
-  - `date_from?: string`
-  - `date_to?: string`
-- Send `state`, `status`, `date_field`, `date_from`, and `date_to` to the API when present
+- Uses `date_field`, `date_from`, and `date_to` in `PolicyTermSearchParams`
+- Sends `state`, `status`, `date_field`, `date_from`, and `date_to` to the API when present
 
-Update `web/app/policy-terms/page.tsx`:
+`web/app/policy-terms/page.tsx`:
 
-- Pass all URL filter state into `fetchPolicyTerms(...)`
-- Stop using current-page-only client-side filtering
-- Use `termPage.items` directly as visible results
-- Remove `inDateRange(...)` and `applyClientSideFilters(...)`
-- Replace the page-scoped empty state with one global empty state:
+- Passes all URL filter state into `fetchPolicyTerms(...)`
+- Uses `termPage.items` directly as visible results
+- Removed current-page-only client-side filtering
+- Removed the page-scoped empty state
+- Uses one global empty state:
   - “No policy terms matched your filters.”
 
-### README Changes
-Update `README.md`:
+### Documentation Completion Notes
+- README examples were updated from `exp_from` / `exp_to` to `date_field`, `date_from`, and `date_to`
+- Examples now cover both expiration-date and effective-date filtering
 
-- Replace `exp_from` / `exp_to` documentation with:
-  - `date_field`
-  - `date_from`
-  - `date_to`
-- Add examples for both expiration-date and effective-date filtering
+### Verification Completed
+- `mvn test` passed, though there are no backend test sources yet
+- `npm run lint` passed
+- `npm run build` passed
+- `git diff --check` passed
 
-### Manual Test Cases
-API tests:
+### Future Follow-up
+Add backend controller/service tests for:
 
-- Basic list: `/api/policy-terms?size=10`
-- State filter: `/api/policy-terms?state=CA&size=10`
-- Status filter: `/api/policy-terms?status=ACTIVE&size=10`
-- Keyword search: `/api/policy-terms?q=OH-000001&size=10`
-- Expiration date filter: `/api/policy-terms?date_field=expiration&date_from=2024-01-01&date_to=2024-12-31&size=10`
-- Effective date filter: `/api/policy-terms?date_field=effective&date_from=2024-01-01&date_to=2024-12-31&size=10`
-- Invalid date field: `/api/policy-terms?date_field=badvalue&size=10` should return HTTP 400
+- `date_field=badvalue` returns 400
+- `date_field=effective` filters by effective date
+- `date_field=expiration` filters by expiration date
+- missing `date_field` defaults to expiration
+- optional future validation: `date_from` must be <= `date_to`
 
-UI tests:
-
-- Apply state filter and confirm all visible rows match
-- Apply status filter and confirm all visible rows match
-- Apply expiration date range and confirm all visible rows match
-- Apply effective date range and confirm all visible rows match
-- Use pagination while filters are active and confirm filters remain in the URL
-- Confirm the incorrect “No matches on this page” behavior is removed
-
-### Suggested Commit Message
-
-```text
-Move policy term filters fully server-side
-```
-
-Suggested commit details:
-
-```text
-- Add date_field/date_from/date_to API parameters
-- Support effective-date and expiration-date filtering
-- Send all filters from policy terms page to API
-- Remove current-page-only client-side filtering
-- Simplify empty-state behavior
-- Update README API examples
-```
-
-## Phase 6: AI Search v1
-
-Start this only after Phase 5 is complete.
+## Phase 6: AI Search v1 🚧 Next
 
 ### Goal
 The AI drawer should convert natural-language search requests into structured `/policy-terms` filters.
@@ -175,6 +136,28 @@ Expected structured filter output:
 ```
 
 The UI should apply those values to the `/policy-terms` URL.
+
+### Recommended v1 Approach
+Start with a deterministic local parser before integrating any external AI API.
+
+This keeps the product flow simple and safe:
+
+- No API key required
+- No backend AI proxy required yet
+- No prompt/audit/security concerns yet
+- Easy to test the drawer-to-filter workflow
+
+### Phase 6 Scope
+- Replace the AI Search placeholder in the Assistant drawer with a small natural-language search form
+- Add a parser utility, such as `web/lib/policy-search-parser.ts`
+- Detect common search intent:
+  - state codes such as `CA`, `NY`, `TX`, `FL`, `IL`, `WA`, `OR`, `AZ`, `CO`, `GA`
+  - statuses such as `active`, `expired`, `cancelled`, `canceled`, `non-renewed`
+  - date field words such as `expiring`, `expires`, `expiration`, `effective`, `starts`, `starting`
+  - four-digit years such as `2026`
+- Preview parsed filters before applying them
+- Apply filters by updating the `/policy-terms` URL
+- Reset `page` to `0` when applying AI-generated filters
 
 ## Phase 7: Policy Summary v1
 
