@@ -6,6 +6,7 @@ import com.oasishorizon.api.policy.dto.PolicyTermSummaryResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,15 +55,17 @@ public class PolicyTermController {
       @RequestParam(name = "q", required = false) String query,
       @RequestParam(name = "state", required = false) String state,
       @RequestParam(name = "status", required = false) String status,
-      @RequestParam(name = "exp_from", required = false)
+      @RequestParam(name = "date_field", defaultValue = "expiration") String dateField,
+      @RequestParam(name = "date_from", required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate expFrom,
-      @RequestParam(name = "exp_to", required = false)
+          LocalDate dateFrom,
+      @RequestParam(name = "date_to", required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate expTo,
+          LocalDate dateTo,
       @RequestParam(defaultValue = "0") @Min(0) int page,
       @RequestParam(defaultValue = "20") @Min(1) @Max(200) int size,
       @RequestParam(defaultValue = "effective_to_date,asc") String sort) {
+    String normalizedDateField = normalizeDateField(dateField);
     Sort sortSpec = parseSort(sort);
     PageRequest pageRequest = PageRequest.of(page, size, sortSpec);
     Page<PolicyTerm> result =
@@ -70,8 +73,9 @@ public class PolicyTermController {
             Optional.ofNullable(query),
             Optional.ofNullable(state),
             Optional.ofNullable(status),
-            Optional.ofNullable(expFrom),
-            Optional.ofNullable(expTo),
+            normalizedDateField,
+            Optional.ofNullable(dateFrom),
+            Optional.ofNullable(dateTo),
             pageRequest);
 
     return new PolicyTermPageResponse(
@@ -80,6 +84,18 @@ public class PolicyTermController {
         result.getSize(),
         result.getTotalElements(),
         result.getTotalPages());
+  }
+
+  private String normalizeDateField(String dateField) {
+    String normalized =
+        dateField == null || dateField.isBlank()
+            ? "expiration"
+            : dateField.trim().toLowerCase(Locale.US);
+    if (!normalized.equals("effective") && !normalized.equals("expiration")) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Unsupported date_field: " + dateField);
+    }
+    return normalized;
   }
 
   @GetMapping("/{termId}")

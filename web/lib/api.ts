@@ -34,8 +34,9 @@ export type PolicyTermSearchParams = {
   q?: string;
   state?: string;
   status?: string;
-  exp_from?: string;
-  exp_to?: string;
+  date_field?: "effective" | "expiration";
+  date_from?: string;
+  date_to?: string;
   page?: number;
   size?: number;
   sort?: string;
@@ -114,8 +115,9 @@ export async function fetchPolicyTerms(
   if (params.q) requestParams.q = params.q;
   if (params.state) requestParams.state = params.state;
   if (params.status) requestParams.status = params.status;
-  if (params.exp_from) requestParams.exp_from = params.exp_from;
-  if (params.exp_to) requestParams.exp_to = params.exp_to;
+  if (params.date_field) requestParams.date_field = params.date_field;
+  if (params.date_from) requestParams.date_from = params.date_from;
+  if (params.date_to) requestParams.date_to = params.date_to;
 
   return fetchJson<PolicyTermPage>("/api/policy-terms", requestParams);
 }

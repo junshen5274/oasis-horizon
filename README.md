@@ -33,7 +33,8 @@ Default route:
 - `http://localhost:3000/policy-terms`
 
 Optional URL params for `/policy-terms`:
-- `q`, `state`, `status`, `exp_from`, `exp_to`, `page`, `size`, `sort`
+- `q`, `state`, `status`, `date_field`, `date_from`, `date_to`, `page`, `size`, `sort`
+- `date_field` may be `expiration` (default) or `effective`
 
 Pagination defaults:
 - `page=0`
@@ -41,6 +42,8 @@ Pagination defaults:
 
 Example:
 - `http://localhost:3000/policy-terms?q=OH&state=AZ&page=0&size=20`
+- `http://localhost:3000/policy-terms?date_field=expiration&date_from=2025-01-01&date_to=2025-12-31`
+- `http://localhost:3000/policy-terms?date_field=effective&date_from=2024-01-01&date_to=2024-06-30`
 
 ## Phase 2: Postgres + seed + Policy Term APIs
 ### Start Postgres (local dev)
@@ -57,6 +60,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 ### Verify endpoints
 ```bash
 curl "http://localhost:8080/api/policy-terms?size=10"
-curl "http://localhost:8080/api/policy-terms?q=OH-000001&state=CA&status=ACTIVE&exp_from=2024-01-01&exp_to=2026-12-31"
+curl "http://localhost:8080/api/policy-terms?q=OH-000001&state=CA&status=ACTIVE&date_field=expiration&date_from=2024-01-01&date_to=2026-12-31"
+curl "http://localhost:8080/api/policy-terms?date_field=effective&date_from=2024-01-01&date_to=2024-06-30"
 curl "http://localhost:8080/api/policy-terms/{termId}"
 ```

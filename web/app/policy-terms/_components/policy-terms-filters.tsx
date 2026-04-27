@@ -246,7 +246,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
       q: "",
       state: "",
       status: "",
-      date_field: "effective",
+      date_field: "expiration",
       date_from: "",
       date_to: ""
     };
@@ -254,7 +254,7 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
     setQ("");
     setStateFilter("");
     setStatus("");
-    setDateField("effective");
+    setDateField("expiration");
     setDateFrom("");
     setDateTo("");
 
@@ -279,10 +279,10 @@ export function PolicyTermsFilters({ params }: PolicyTermsFiltersProps) {
       setStatus("");
     }
     if (filterKey === "date_range") {
-      nextValues.date_field = "effective";
+      nextValues.date_field = "expiration";
       nextValues.date_from = "";
       nextValues.date_to = "";
-      setDateField("effective");
+      setDateField("expiration");
       setDateFrom("");
       setDateTo("");
     }

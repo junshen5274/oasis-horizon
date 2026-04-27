@@ -7,3 +7,4 @@
 # Node (no lockfiles for now)
 package-lock.json
 **/package-lock.json
+.DS_Store

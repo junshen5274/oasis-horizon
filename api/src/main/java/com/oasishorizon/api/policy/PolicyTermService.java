@@ -23,10 +23,16 @@ public class PolicyTermService {
       Optional<String> query,
       Optional<String> state,
       Optional<String> status,
-      Optional<LocalDate> expFrom,
-      Optional<LocalDate> expTo,
+      String dateField,
+      Optional<LocalDate> dateFrom,
+      Optional<LocalDate> dateTo,
       Pageable pageable) {
-    Specification<PolicyTerm> specification = buildSpecification(query, state, status, expFrom, expTo);
+    String normalizedDateField =
+        dateField == null || dateField.isBlank()
+            ? "expiration"
+            : dateField.trim().toLowerCase(Locale.US);
+    Specification<PolicyTerm> specification =
+        buildSpecification(query, state, status, normalizedDateField, dateFrom, dateTo);
     return policyTermRepository.findAll(specification, pageable);
   }
 
@@ -38,11 +44,14 @@ public class PolicyTermService {
       Optional<String> query,
       Optional<String> state,
       Optional<String> status,
-      Optional<LocalDate> expFrom,
-      Optional<LocalDate> expTo) {
+      String dateField,
+      Optional<LocalDate> dateFrom,
+      Optional<LocalDate> dateTo) {
     return (root, criteriaQuery, criteriaBuilder) -> {
       List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
       var policyJoin = root.join("policy");
+      String dateAttribute =
+          "effective".equals(dateField) ? "effectiveFromDate" : "effectiveToDate";
 
       query.map(String::trim)
           .filter(value -> !value.isBlank())
@@ -73,15 +82,15 @@ public class PolicyTermService {
                       criteriaBuilder.equal(
                           criteriaBuilder.lower(root.get("status")), value.toLowerCase(Locale.US))));
 
-      expFrom.ifPresent(
+      dateFrom.ifPresent(
           date ->
               predicates.add(
-                  criteriaBuilder.greaterThanOrEqualTo(root.get("effectiveToDate"), date)));
+                  criteriaBuilder.greaterThanOrEqualTo(root.get(dateAttribute), date)));
 
-      expTo.ifPresent(
+      dateTo.ifPresent(
           date ->
               predicates.add(
-                  criteriaBuilder.lessThanOrEqualTo(root.get("effectiveToDate"), date)));
+                  criteriaBuilder.lessThanOrEqualTo(root.get(dateAttribute), date)));
 
       criteriaQuery.distinct(true);
       return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
