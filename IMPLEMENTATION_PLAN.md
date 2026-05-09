@@ -2,9 +2,9 @@
 
 ## Current Focus
 
-AI Search v1 for the Assistant drawer.
+Policy Summary v1 for the Assistant drawer.
 
-Phase 5 server-side filter correctness is completed. The `/policy-terms` page now has a cleaner foundation for AI Search because pagination, total count, filtering, and empty-state behavior are handled consistently by the backend.
+Phase 6 AI Search v1 is completed. The Assistant drawer can now convert natural-language search prompts into structured `/policy-terms` filters using a deterministic local parser.
 
 ---
 
@@ -137,7 +137,7 @@ Suggested commit details:
 - Update README API examples
 ```
 
-## Phase 6: AI Search v1 🚧 In Progress
+## Phase 6: AI Search v1 ✅ Completed
 
 ### Goal
 The AI drawer should convert natural-language search requests into structured `/policy-terms` filters.
@@ -184,6 +184,13 @@ This keeps the product flow simple and safe:
 - Preview parsed filters before applying them
 - Apply filters by updating the `/policy-terms` URL
 - Reset `page` to `0` when applying AI-generated filters
+
+### Completion Notes
+- Added deterministic local natural-language parser for policy search prompts
+- Added AI Search form in the Assistant drawer
+- Added structured filter preview
+- Apply Filters updates the `/policy-terms` URL using existing server-side filters
+- No external AI API integration yet
 
 ## Phase 7: Policy Summary v1
 
