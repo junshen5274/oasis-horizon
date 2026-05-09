@@ -1,7 +1,10 @@
 "use client";
 
 import { type SVGProps, useState } from "react";
-import { AssistantDrawer } from "@/components/assistant-drawer";
+import {
+  AssistantDrawer,
+  type PolicySummaryContext
+} from "@/components/assistant-drawer";
 
 function SparklesIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -13,7 +16,13 @@ function SparklesIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export function AssistantDrawerToggle() {
+type AssistantDrawerToggleProps = {
+  policySummaryContext?: PolicySummaryContext;
+};
+
+export function AssistantDrawerToggle({
+  policySummaryContext
+}: AssistantDrawerToggleProps) {
   const [open, setOpen] = useState(false);
   const label = open ? "Close Assistant" : "Open Assistant";
 
@@ -32,7 +41,11 @@ export function AssistantDrawerToggle() {
         </span>
       </button>
 
-      <AssistantDrawer open={open} onOpenChange={setOpen} />
+      <AssistantDrawer
+        open={open}
+        onOpenChange={setOpen}
+        policySummaryContext={policySummaryContext}
+      />
     </>
   );
 }
