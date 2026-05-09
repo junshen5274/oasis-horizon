@@ -60,6 +60,26 @@ function detectYear(input: string): string {
   return input.match(/\b(19|20)\d{2}\b/)?.[0] ?? "";
 }
 
+function stripRecognizedTerms(input: string, state: string): string {
+  let query = input;
+
+  if (state) {
+    query = query.replace(new RegExp(`\\b${state}\\b`, "gi"), " ");
+  }
+
+  query = query
+    .replace(/\bnon[\s-]?renewed\b/gi, " ")
+    .replace(/\bcancell?ed\b/gi, " ")
+    .replace(/\bexpired\b/gi, " ")
+    .replace(/\bactive\b/gi, " ")
+    .replace(/\b(policy|policies)\b/gi, " ")
+    .replace(/\b(expiring|expires|expiration|effective|starts|starting)\b/gi, " ")
+    .replace(/\b(19|20)\d{2}\b/g, " ")
+    .replace(/\bin\b/gi, " ");
+
+  return query.replace(/\s+/g, " ").trim();
+}
+
 export function parsePolicySearchPrompt(input: string): ParsedPolicySearchFilters {
   const prompt = input.trim();
   const normalizedInput = prompt.toLowerCase();
@@ -69,10 +89,9 @@ export function parsePolicySearchPrompt(input: string): ParsedPolicySearchFilter
   const year = detectYear(prompt);
   const dateFrom = year ? `${year}-01-01` : "";
   const dateTo = year ? `${year}-12-31` : "";
-  const hasStructuredFilters = Boolean(state || status || year);
 
   return {
-    q: hasStructuredFilters ? "" : prompt,
+    q: stripRecognizedTerms(prompt, state),
     state,
     status,
     date_field: dateField,

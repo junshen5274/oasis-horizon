@@ -228,7 +228,10 @@ export function AssistantDrawer({
                 <textarea
                   id="assistant-policy-search"
                   value={searchPrompt}
-                  onChange={(event) => setSearchPrompt(event.target.value)}
+                  onChange={(event) => {
+                    setSearchPrompt(event.target.value);
+                    setParsedFilters(null);
+                  }}
                   rows={4}
                   placeholder="Show active CA policies expiring in 2026"
                   className="w-full resize-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
