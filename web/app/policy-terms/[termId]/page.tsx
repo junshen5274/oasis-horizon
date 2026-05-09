@@ -112,7 +112,9 @@ export default async function PolicyTermDetailPage({
         )}
       </section>
 
-      <AssistantDrawerToggle />
+      <AssistantDrawerToggle
+        policySummaryContext={result.ok ? result.data : undefined}
+      />
     </main>
   );
 }

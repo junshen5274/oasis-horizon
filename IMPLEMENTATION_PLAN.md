@@ -2,9 +2,7 @@
 
 ## Current Focus
 
-Policy Summary v1 for the Assistant drawer.
-
-Phase 6 AI Search v1 is completed. The Assistant drawer can now convert natural-language search prompts into structured `/policy-terms` filters using a deterministic local parser.
+Phase 7 Policy Summary v1 is completed. The Assistant drawer now shows deterministic grounded summaries on policy term detail pages without external AI integration.
 
 ---
 
@@ -192,9 +190,7 @@ This keeps the product flow simple and safe:
 - Apply Filters updates the `/policy-terms` URL using existing server-side filters
 - No external AI API integration yet
 
-## Phase 7: Policy Summary v1
-
-Start this after AI Search v1.
+## Phase 7: Policy Summary v1 ✅ Completed
 
 ### Goal
 The AI drawer should generate a grounded policy summary from the currently loaded policy term detail data.
@@ -204,6 +200,17 @@ Rules:
 - Only summarize fields available from the API
 - Do not invent missing policy, risk, billing, or claim information
 - Clearly indicate when a detail is not available in the current prototype data
+
+### Phase 7 v1 Note
+
+Do not integrate the OpenAI API yet. The first implementation uses deterministic summary text grounded only in the loaded policy term detail fields.
+
+### Completion Notes
+
+- Policy term detail pages pass loaded policy detail data into the Assistant drawer
+- The Policy Summary tab renders deterministic summary text and a field preview using only API fields
+- List pages show a prompt to open a policy term detail page before generating a summary
+- AI Search v1 behavior remains available in the same drawer
 
 ## Phase 8: Demo polish
 

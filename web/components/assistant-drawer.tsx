@@ -19,9 +19,86 @@ const tabs: Array<{ id: AssistantTab; label: string }> = [
 type AssistantDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  policySummaryContext?: PolicySummaryContext;
 };
 
-export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
+export type PolicySummaryContext = {
+  policyNumber: string;
+  insuredName: string;
+  termNumber: number;
+  state: string;
+  status: string;
+  effectiveFromDate: string;
+  effectiveToDate: string;
+  balanceDue: string;
+  nextDueDate: string | null;
+  lastPaymentDate: string | null;
+};
+
+function displayValue(value: string | null): string {
+  return value && value.trim().length > 0 ? value : "Not available";
+}
+
+function PolicySummary({
+  policy
+}: {
+  policy?: PolicySummaryContext;
+}) {
+  if (!policy) {
+    return (
+      <p className="text-slate-300">
+        Open a policy term detail page to generate a policy summary.
+      </p>
+    );
+  }
+
+  const summaryRows = [
+    { label: "Policy", value: policy.policyNumber },
+    { label: "Insured", value: policy.insuredName },
+    { label: "Term", value: `#${policy.termNumber}` },
+    { label: "State", value: policy.state },
+    { label: "Status", value: policy.status },
+    { label: "Effective", value: policy.effectiveFromDate },
+    { label: "Expiration", value: policy.effectiveToDate },
+    { label: "Balance due", value: `$${policy.balanceDue}` },
+    { label: "Next due", value: displayValue(policy.nextDueDate) },
+    { label: "Last payment", value: displayValue(policy.lastPaymentDate) }
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <p className="text-slate-200">
+          Policy {policy.policyNumber} is term #{policy.termNumber} for{" "}
+          {policy.insuredName} in {policy.state}. The term status is {policy.status}.
+        </p>
+        <p className="text-slate-300">
+          The term runs from {policy.effectiveFromDate} through{" "}
+          {policy.effectiveToDate}. The current balance due is ${policy.balanceDue}.
+        </p>
+        <p className="text-slate-300">
+          Next due date: {displayValue(policy.nextDueDate)}. Last payment date:{" "}
+          {displayValue(policy.lastPaymentDate)}.
+        </p>
+      </div>
+
+      <dl className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900/70 px-3">
+        {summaryRows.map((row) => (
+          <div key={row.label} className="grid grid-cols-[110px_1fr] gap-3 py-2">
+            <dt className="text-slate-500">{row.label}</dt>
+            <dd className="font-medium text-slate-200">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+export function AssistantDrawer({
+  open,
+  onOpenChange,
+  policySummaryContext
+}: AssistantDrawerProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AssistantTab>("search");
   const [mounted, setMounted] = useState(false);
@@ -195,7 +272,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               ) : null}
             </form>
           ) : (
-            <p>Grounded policy summaries will appear here in a future phase.</p>
+            <PolicySummary policy={policySummaryContext} />
           )}
         </div>
       </aside>
