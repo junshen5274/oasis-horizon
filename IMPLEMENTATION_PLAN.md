@@ -2,9 +2,7 @@
 
 ## Current Focus
 
-Server-side filter correctness for `/policy-terms`.
-
-This must be completed before implementing AI Search v1. The goal is to make pagination, total count, filtering, and empty-state behavior correct across the full dataset, not just the current fetched page.
+Phase 6 AI Search v1: deterministic local natural-language parser in the Assistant drawer.
 
 ---
 
@@ -38,7 +36,7 @@ This must be completed before implementing AI Search v1. The goal is to make pag
 - Loading/error state handling
 - URL-driven search and pagination params
 
-## Phase 5: Server-side filter correctness 🚧 Next
+## Phase 5: Server-side filter correctness ✅ Completed
 
 ### Goal
 Move all `/policy-terms` filters fully server-side so pagination, total count, and empty states are correct.
@@ -148,9 +146,7 @@ Suggested commit details:
 - Update README API examples
 ```
 
-## Phase 6: AI Search v1
-
-Start this only after Phase 5 is complete.
+## Phase 6: AI Search v1 🚧 In Progress
 
 ### Goal
 The AI drawer should convert natural-language search requests into structured `/policy-terms` filters.
@@ -175,6 +171,10 @@ Expected structured filter output:
 ```
 
 The UI should apply those values to the `/policy-terms` URL.
+
+### Phase 6 v1 Note
+
+Do not integrate the OpenAI API yet. The first implementation uses a deterministic local parser so the search flow works without API keys.
 
 ## Phase 7: Policy Summary v1
 
