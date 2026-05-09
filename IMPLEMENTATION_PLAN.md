@@ -111,7 +111,33 @@ Add backend controller/service tests for:
 - missing `date_field` defaults to expiration
 - optional future validation: `date_from` must be <= `date_to`
 
-## Phase 6: AI Search v1 🚧 Next
+UI tests:
+
+- Apply state filter and confirm all visible rows match
+- Apply status filter and confirm all visible rows match
+- Apply expiration date range and confirm all visible rows match
+- Apply effective date range and confirm all visible rows match
+- Use pagination while filters are active and confirm filters remain in the URL
+- Confirm the incorrect “No matches on this page” behavior is removed
+
+### Suggested Commit Message
+
+```text
+Move policy term filters fully server-side
+```
+
+Suggested commit details:
+
+```text
+- Add date_field/date_from/date_to API parameters
+- Support effective-date and expiration-date filtering
+- Send all filters from policy terms page to API
+- Remove current-page-only client-side filtering
+- Simplify empty-state behavior
+- Update README API examples
+```
+
+## Phase 6: AI Search v1 🚧 In Progress
 
 ### Goal
 The AI drawer should convert natural-language search requests into structured `/policy-terms` filters.
