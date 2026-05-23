@@ -77,7 +77,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 ### Verify endpoints
 ```bash
 curl "http://localhost:8080/api/policy-terms?size=10"
-curl "http://localhost:8080/api/policy-terms?q=OH-000001&state=CA&status=ACTIVE&date_field=expiration&date_from=2024-01-01&date_to=2026-12-31"
-curl "http://localhost:8080/api/policy-terms?date_field=effective&date_from=2024-01-01&date_to=2024-06-30"
+curl "http://localhost:8080/api/policy-terms?q=OH-000001&state=NY&status=ACTIVE&date_field=expiration&date_from=2026-01-01&date_to=2026-12-31"
+curl "http://localhost:8080/api/policy-terms?state=CA&status=CANCELLED"
+curl "http://localhost:8080/api/policy-terms?date_field=effective&date_from=2025-01-01&date_to=2025-12-31"
+curl "http://localhost:8080/api/policy-terms?date_field=expiration&date_from=2026-01-01&date_to=2026-12-31"
 curl "http://localhost:8080/api/policy-terms/{termId}"
 ```
