@@ -45,6 +45,21 @@ Example:
 - `http://localhost:3000/policy-terms?date_field=expiration&date_from=2025-01-01&date_to=2025-12-31`
 - `http://localhost:3000/policy-terms?date_field=effective&date_from=2024-01-01&date_to=2024-06-30`
 
+## Local startup
+Use the helper scripts to start local dependencies and services in order:
+
+```bash
+./scripts/start-postgres.sh
+./scripts/start-api.sh
+./scripts/start-web.sh
+```
+
+Or run just the dependency bootstrap + guidance:
+
+```bash
+./scripts/start-local.sh
+```
+
 ## Phase 2: Postgres + seed + Policy Term APIs
 ### Start Postgres (local dev)
 ```bash
