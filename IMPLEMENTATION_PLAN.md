@@ -219,8 +219,12 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 
 - Demo dataset polish
 - Better policy detail sections
-- Status badge styling
-- Page-size selector
+- Status badge styling ✅ Completed
+- Page-size selector ✅ Completed
 - README screenshots or short GIF
 - One-command local startup script
 - Optional GitHub Actions build check
+
+### Completion Notes
+- Policy terms list now displays status values as compact badges with readable styling by status.
+- Policy terms list now includes a 10 / 20 / 50 page-size selector that updates the `size` URL parameter, resets `page` to `0`, and preserves active filters and sort.

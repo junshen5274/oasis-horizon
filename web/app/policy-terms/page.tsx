@@ -10,6 +10,9 @@ import {
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+const DEFAULT_PAGE_SIZE = 20;
+
 function getParam(searchParams: SearchParams, key: string): string {
   const value = searchParams[key];
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -17,6 +20,11 @@ function getParam(searchParams: SearchParams, key: string): string {
 
 function parseDateField(value: string): "expiration" | "effective" {
   return value === "effective" ? "effective" : "expiration";
+}
+
+function parsePageSize(value: string): number {
+  const parsed = parsePositiveInt(value, DEFAULT_PAGE_SIZE);
+  return PAGE_SIZE_OPTIONS.includes(parsed) ? parsed : DEFAULT_PAGE_SIZE;
 }
 
 function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
@@ -28,7 +36,7 @@ function parseUrlState(searchParams: SearchParams): PolicyTermsUrlState {
     date_from: getParam(searchParams, "date_from"),
     date_to: getParam(searchParams, "date_to"),
     page: parseNonNegativeInt(getParam(searchParams, "page"), 0),
-    size: parsePositiveInt(getParam(searchParams, "size"), 20),
+    size: parsePageSize(getParam(searchParams, "size")),
     sort: getParam(searchParams, "sort") || "effective_to_date,asc"
   };
 }
@@ -47,6 +55,84 @@ function buildPageHref(params: PolicyTermsUrlState, page: number): string {
   });
 
   return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
+}
+
+function buildPageSizeHref(params: PolicyTermsUrlState, size: number): string {
+  const query = buildQueryString({
+    q: params.q,
+    state: params.state,
+    status: params.status,
+    date_field: params.date_field,
+    date_from: params.date_from,
+    date_to: params.date_to,
+    page: 0,
+    size,
+    sort: params.sort
+  });
+
+  return query.length > 0 ? `/policy-terms?${query}` : "/policy-terms";
+}
+
+function getStatusBadgeClass(status: string): string {
+  const normalizedStatus = status.toUpperCase();
+
+  if (normalizedStatus === "ACTIVE") {
+    return "border-emerald-700/60 bg-emerald-950/50 text-emerald-200";
+  }
+
+  if (normalizedStatus === "EXPIRED") {
+    return "border-slate-700 bg-slate-800/70 text-slate-300";
+  }
+
+  if (normalizedStatus === "CANCELLED" || normalizedStatus === "CANCELED") {
+    return "border-rose-700/60 bg-rose-950/50 text-rose-200";
+  }
+
+  if (normalizedStatus === "NON_RENEWED") {
+    return "border-amber-700/60 bg-amber-950/50 text-amber-200";
+  }
+
+  return "border-slate-700 bg-slate-900 text-slate-300";
+}
+
+function PolicyStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={`inline-flex min-w-24 items-center justify-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusBadgeClass(
+        status
+      )}`}
+    >
+      {status}
+    </span>
+  );
+}
+
+function PageSizeSelector({ params }: { params: PolicyTermsUrlState }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-slate-400">Rows</span>
+      <div className="flex overflow-hidden rounded-md border border-slate-800">
+        {PAGE_SIZE_OPTIONS.map((size) => {
+          const isSelected = size === params.size;
+
+          return (
+            <Link
+              key={size}
+              href={buildPageSizeHref(params, size)}
+              className={`px-3 py-2 text-sm ${
+                isSelected
+                  ? "bg-sky-600 text-white"
+                  : "bg-slate-900 text-slate-300 hover:bg-slate-800"
+              }`}
+              aria-current={isSelected ? "page" : undefined}
+            >
+              {size}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 type PolicyTermsPagerProps = {
@@ -194,9 +280,12 @@ export default async function PolicyTermsPage({
         <PolicyTermsFilters params={urlState} />
 
         <>
-          <div className="mb-3 text-sm text-slate-400">
-            Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
-            {totalElements} total)
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-slate-400">
+              Showing page {termPage.page + 1} of {Math.max(termPage.totalPages, 1)} (
+              {totalElements} total)
+            </div>
+            <PageSizeSelector params={urlState} />
           </div>
 
           <div className="mb-3">
@@ -234,7 +323,9 @@ export default async function PolicyTermsPage({
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-slate-200">{term.insuredName}</td>
-                    <td className="px-4 py-3 text-slate-300">{term.status}</td>
+                    <td className="px-4 py-3">
+                      <PolicyStatusBadge status={term.status} />
+                    </td>
                     <td className="px-4 py-3 text-slate-300">
                       #{term.termNumber} · {term.state}
                     </td>
