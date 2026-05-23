@@ -190,6 +190,9 @@ This keeps the product flow simple and safe:
 - Apply Filters updates the `/policy-terms` URL using existing server-side filters
 - No external AI API integration yet
 
+### Future Follow-up
+The current AI Search v1 uses a deterministic parser. This is good enough for demo and local use, but it will not handle all natural-language variations. A future phase should add an AI-backed intent parser that converts user prompts into a validated structured filter object, while keeping the existing server-side `/api/policy-terms` search as the execution layer.
+
 ## Phase 7: Policy Summary v1 ✅ Completed
 
 ### Goal

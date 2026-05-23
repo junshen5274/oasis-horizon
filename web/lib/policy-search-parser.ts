@@ -8,6 +8,9 @@ export type ParsedPolicySearchFilters = {
 };
 
 const STATE_CODES = new Set(["CA", "NY", "TX", "FL", "IL", "WA", "OR", "AZ", "CO", "GA"]);
+const POLICY_NUMBER_PATTERN = /\b(?:[A-Za-z]{1,5}-\d{3,}(?:-\d+)*|\d{5,})\b/g;
+const FILLER_WORD_PATTERN =
+  /\b(show|all|find|list|get|give|me|display|search|policy|policies|term|terms|record|records|for|in|with|where|that|are|is|the|a|an|and|or|but|please)\b/gi;
 
 function detectState(input: string): string {
   const tokens = input.match(/[A-Za-z]{2,}/g) ?? [];
@@ -62,6 +65,12 @@ function detectYear(input: string): string {
 
 function stripRecognizedTerms(input: string, state: string): string {
   let query = input;
+  const policyNumbers: string[] = [];
+
+  query = query.replace(POLICY_NUMBER_PATTERN, (match) => {
+    policyNumbers.push(match);
+    return ` __POLICY_NUMBER_${policyNumbers.length - 1}__ `;
+  });
 
   if (state) {
     query = query.replace(new RegExp(`\\b${state}\\b`, "gi"), " ");
@@ -72,10 +81,15 @@ function stripRecognizedTerms(input: string, state: string): string {
     .replace(/\bcancell?ed\b/gi, " ")
     .replace(/\bexpired\b/gi, " ")
     .replace(/\bactive\b/gi, " ")
-    .replace(/\b(policy|policies)\b/gi, " ")
+    .replace(FILLER_WORD_PATTERN, " ")
     .replace(/\b(expiring|expires|expiration|effective|starts|starting)\b/gi, " ")
     .replace(/\b(19|20)\d{2}\b/g, " ")
-    .replace(/\bin\b/gi, " ");
+    .replace(/[,.!?;:()[\]{}]/g, " ")
+    .replace(/\s-\s/g, " ");
+
+  policyNumbers.forEach((policyNumber, index) => {
+    query = query.replace(`__POLICY_NUMBER_${index}__`, policyNumber);
+  });
 
   return query.replace(/\s+/g, " ").trim();
 }
