@@ -54,6 +54,8 @@ Use the helper scripts to start local dependencies and services in order:
 ./scripts/start-web.sh
 ```
 
+Note: `./scripts/start-postgres.sh` checks Docker availability first. On macOS, if Docker is not running, it will attempt to launch Docker Desktop automatically and wait for the daemon to become ready.
+
 Or run just the dependency bootstrap + guidance:
 
 ```bash
