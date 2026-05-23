@@ -218,7 +218,7 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 ## Phase 8: Demo polish
 
 - Demo dataset polish
-- Better policy detail sections
+- Better policy detail sections ✅ Completed
 - Status badge styling ✅ Completed
 - Page-size selector ✅ Completed
 - README screenshots or short GIF
@@ -228,3 +228,4 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 ### Completion Notes
 - Policy terms list now displays status values as compact badges with readable styling by status.
 - Policy terms list now includes a 10 / 20 / 50 page-size selector that updates the `size` URL parameter, resets `page` to `0`, and preserves active filters and sort.
+- Policy term detail pages now use clearer overview, term date, policy info, and prototype notes sections, and reuse the shared status badge styling.
