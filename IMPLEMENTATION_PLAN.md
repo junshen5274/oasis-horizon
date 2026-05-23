@@ -223,10 +223,12 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - Page-size selector ✅ Completed
 - README screenshots or short GIF
 - One-command local startup script
-- Optional GitHub Actions build check
+- Optional GitHub Actions build check ✅ Completed
 
 ### Completion Notes
 - Local seed data now reserves deterministic demo policies for common searches across key states, statuses, realistic insured names, policy-number lookup, and 2023-2027 date scenarios.
 - Policy terms list now displays status values as compact badges with readable styling by status.
 - Policy terms list now includes a 10 / 20 / 50 page-size selector that updates the `size` URL parameter, resets `page` to `0`, and preserves active filters and sort.
 - Policy term detail pages now use clearer overview, term date, policy info, and prototype notes sections, and reuse the shared status badge styling.
+- Added a minimal GitHub Actions workflow at `.github/workflows/build.yml` for `pull_request` and pushes to `main`.
+- CI validates backend with `mvn test` in `/api` and frontend in `/web` with dependency install, `npm run lint`, and `npm run build`; no deploy, Docker, DB service, secrets, or external AI API calls.
