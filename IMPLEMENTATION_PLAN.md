@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-Phase 7 Policy Summary v1 is completed. The Assistant drawer now shows deterministic grounded summaries on policy term detail pages without external AI integration.
+Phase 8 Demo polish is completed. Phase 9 AI-backed assistant v1 is planned as the next major direction.
 
 ---
 
@@ -215,6 +215,7 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - List pages show a prompt to open a policy term detail page before generating a summary
 - AI Search v1 behavior remains available in the same drawer
 
+
 ## Phase 8: Demo polish
 
 - Demo dataset polish ✅ Completed
@@ -234,3 +235,66 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - Added a minimal GitHub Actions workflow at `.github/workflows/build.yml` for `pull_request` and pushes to `main`.
 - CI validates backend with `mvn test` in `/api` and frontend in `/web` with dependency install, `npm run lint`, and `npm run build`; no deploy, Docker, DB service, secrets, or external AI API calls.
 - Local startup helper script behavior is now documented as guided (not fully one-command): `scripts/start-local.sh` starts Docker/Postgres and prints next-step commands and local URLs, while API and web are intentionally run in separate terminals so logs remain easy to monitor.
+
+## Phase 9: AI-backed assistant v1 (Planned / Next)
+
+### Goal
+Use an AI model to interpret flexible natural-language search requests and return a validated structured filter object. The AI must not directly query the database or execute business logic.
+
+Recommended architecture:
+
+```text
+User prompt
+→ backend assistant endpoint
+→ AI model returns strict JSON
+→ backend validates JSON
+→ frontend applies filters through existing URL/query flow
+→ existing /api/policy-terms endpoint performs server-side search
+```
+
+### Phase 9A: Architecture and safety design
+- Define backend endpoint shape
+- Define request/response JSON contract
+- Define validation rules
+- Define fallback behavior
+- Document what AI is allowed and not allowed to do
+
+### Phase 9B: Backend AI parse endpoint
+- Add endpoint such as `/api/assistant/policy-search-parse`
+- Accept user prompt
+- Call AI provider only from backend
+- Return structured filters
+- Validate fields before returning them to frontend
+- Keep existing `/api/policy-terms` endpoint as the execution layer
+
+### Phase 9B completion notes (current step)
+- Added backend assistant parse endpoint skeleton at `/api/assistant/policy-search-parse`.
+- Endpoint currently uses deterministic backend parsing only (no external AI provider integration yet).
+- Added request/response contract and backend validation for prompt + normalized filter output fields.
+- Existing `/api/policy-terms` endpoint remains unchanged as the execution/search layer.
+- Real AI provider integration is deferred to a later Phase 9 step.
+
+### Phase 9C: Frontend integration
+- AI drawer calls backend assistant endpoint
+- Preview parsed filters
+- User applies filters
+- URL query params update as today
+- Existing server-side filtering remains unchanged
+
+### Phase 9D: Fallback and safety
+- If AI call fails, use deterministic parser fallback
+- If AI returns invalid JSON, show a clear error
+- If AI returns unsupported `state`/`status`/`date_field`, reject or normalize safely
+- Never allow AI to create arbitrary database queries
+- Never send sensitive production data in this prototype
+
+### Phase 9E: Future enterprise considerations
+- Environment variable for API key
+- No API key committed to repo
+- Logging without sensitive prompt data
+- Model/provider abstraction
+- Auditability
+- Human review for production use
+
+### Phase 9 note
+The current deterministic parser should remain in place as a safe fallback even after AI-backed parsing is added.
