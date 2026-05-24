@@ -259,22 +259,16 @@ User prompt
 - Define fallback behavior
 - Document what AI is allowed and not allowed to do
 
-### Phase 9B: Backend AI parse endpoint
-- Add endpoint such as `/api/assistant/policy-search-parse`
-- Accept user prompt
-- Call AI provider only from backend
-- Return structured filters
-- Validate fields before returning them to frontend
-- Keep existing `/api/policy-terms` endpoint as the execution layer
+### Phase 9B: Backend AI parse endpoint ✅ Completed
 
-### Phase 9B completion notes (current step)
 - Added backend assistant parse endpoint skeleton at `/api/assistant/policy-search-parse`.
-- Endpoint currently uses deterministic backend parsing only (no external AI provider integration yet).
+- Endpoint currently uses deterministic backend parsing only; no external AI provider integration yet.
 - Added request/response contract and backend validation for prompt + normalized filter output fields.
 - Existing `/api/policy-terms` endpoint remains unchanged as the execution/search layer.
 - Real AI provider integration is deferred to a later Phase 9 step.
 
 ### Phase 9C: Frontend integration
+
 - AI drawer calls backend assistant endpoint
 - Preview parsed filters
 - User applies filters
