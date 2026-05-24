@@ -221,11 +221,12 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - Better policy detail sections ✅ Completed
 - Status badge styling ✅ Completed
 - Page-size selector ✅ Completed
-- README screenshots or short GIF
+- README screenshots or short GIF ✅ Completed
 - One-command local startup script
 - Optional GitHub Actions build check ✅ Completed
 
 ### Completion Notes
+- README now includes a concise demo preview section with screenshots for the policy terms list, filtered list, policy detail page, and assistant drawer behavior.
 - Local seed data now reserves deterministic demo policies for common searches across key states, statuses, realistic insured names, policy-number lookup, and 2023-2027 date scenarios.
 - Policy terms list now displays status values as compact badges with readable styling by status.
 - Policy terms list now includes a 10 / 20 / 50 page-size selector that updates the `size` URL parameter, resets `page` to `0`, and preserves active filters and sort.

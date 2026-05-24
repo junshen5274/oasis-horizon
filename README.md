@@ -10,6 +10,25 @@ Prototype: next-generation, cloud-ready **Policy Inquiry/Search** for underwrite
   - Natural-language search → structured filters
   - Policy summary grounded in data
 
+## Demo Preview
+The prototype includes a modern Policy Terms search/list page with server-side filters, pagination, and demo-ready status badges.
+
+![Policy Terms list](docs/images/policy-terms-list.png)
+
+The list supports filtered demo workflows such as state/status searches and date-range searches.
+
+![Policy Terms filtered list](docs/images/policy-terms-list-with-filter.png)
+
+Policy term detail pages organize the available prototype fields into readable sections.
+
+![Policy Term detail](docs/images/policy-term-detail.png)
+
+The assistant drawer provides deterministic AI Search filter previews and grounded Policy Summary behavior without external AI integration.
+
+![AI drawer search](docs/images/ai-drawer-search.png)
+
+![AI drawer policy summary](docs/images/ai-drawer-search-policy-summary.png)
+
 ## Repo structure
 - /web  Next.js frontend
 - /api  Spring Boot backend
