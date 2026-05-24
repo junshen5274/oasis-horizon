@@ -222,7 +222,7 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - Status badge styling ✅ Completed
 - Page-size selector ✅ Completed
 - README screenshots or short GIF ✅ Completed
-- One-command local startup script
+- Guided local startup helper script ✅ Completed
 - Optional GitHub Actions build check ✅ Completed
 
 ### Completion Notes
@@ -233,3 +233,4 @@ Do not integrate the OpenAI API yet. The first implementation uses deterministic
 - Policy term detail pages now use clearer overview, term date, policy info, and prototype notes sections, and reuse the shared status badge styling.
 - Added a minimal GitHub Actions workflow at `.github/workflows/build.yml` for `pull_request` and pushes to `main`.
 - CI validates backend with `mvn test` in `/api` and frontend in `/web` with dependency install, `npm run lint`, and `npm run build`; no deploy, Docker, DB service, secrets, or external AI API calls.
+- Local startup helper script behavior is now documented as guided (not fully one-command): `scripts/start-local.sh` starts Docker/Postgres and prints next-step commands and local URLs, while API and web are intentionally run in separate terminals so logs remain easy to monitor.
